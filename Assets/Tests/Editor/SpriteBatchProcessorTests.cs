@@ -81,6 +81,15 @@ namespace SpriteBatch.Tests
             Assert.IsNotNull(error);
         }
 
+        [Test]
+        public void ValidateRectBounds_零面積_回傳false()
+        {
+            var def = new SpriteRectDef { nameSuffix = "_0", rect = new Rect(0, 0, 0, 88) };
+            bool valid = SpriteBatchProcessor.ValidateRectBounds(def, 160, 551, out string error);
+            Assert.IsFalse(valid);
+            Assert.IsNotNull(error);
+        }
+
         // --- BuildSpriteMetaData ---
 
         [Test]

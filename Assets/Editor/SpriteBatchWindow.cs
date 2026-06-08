@@ -14,6 +14,7 @@ namespace SpriteBatch
         private ReorderableList _rectList;
 
         private List<string> _allTexturePaths = new List<string>();
+        private string[]     _previewNames;
         private int          _previewIndex    = 0;
         private Texture2D    _previewTexture;
         private Vector2      _scrollPos;
@@ -41,8 +42,11 @@ namespace SpriteBatch
             _folderList.drawElementCallback = (rect, index, isActive, isFocused) =>
             {
                 var r = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
+                EditorGUI.BeginChangeCheck();
                 _settings.targetFolders[index] = (DefaultAsset)EditorGUI.ObjectField(
                     r, _settings.targetFolders[index], typeof(DefaultAsset), false);
+                if (EditorGUI.EndChangeCheck())
+                    RefreshTexturePaths();
             };
             _folderList.onAddCallback    = _ => { _settings.targetFolders.Add(null); RefreshTexturePaths(); };
             _folderList.onRemoveCallback = list => { _settings.targetFolders.RemoveAt(list.index); RefreshTexturePaths(); };
@@ -114,7 +118,7 @@ namespace SpriteBatch
                 return;
             }
 
-            var names    = _allTexturePaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToArray();
+            var names    = _previewNames ?? System.Array.Empty<string>();
             int newIndex = EditorGUILayout.Popup(_previewIndex, names);
             if (newIndex != _previewIndex || _previewTexture == null)
             {
@@ -162,20 +166,18 @@ namespace SpriteBatch
 
         private void RefreshTexturePaths()
         {
-            _allTexturePaths.Clear();
+            var pathSet = new HashSet<string>();
             foreach (var folder in _settings.targetFolders)
             {
                 if (folder == null) continue;
                 var folderPath = AssetDatabase.GetAssetPath(folder);
                 if (string.IsNullOrEmpty(folderPath)) continue;
-                var guids      = AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath });
+                var guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath });
                 foreach (var guid in guids)
-                {
-                    var path = AssetDatabase.GUIDToAssetPath(guid);
-                    if (!_allTexturePaths.Contains(path))
-                        _allTexturePaths.Add(path);
-                }
+                    pathSet.Add(AssetDatabase.GUIDToAssetPath(guid));
             }
+            _allTexturePaths = new List<string>(pathSet);
+            _previewNames   = _allTexturePaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToArray();
             _previewIndex   = 0;
             _previewTexture = null;
             Repaint();
@@ -198,20 +200,28 @@ namespace SpriteBatch
             }
 
             bool cancelled = false;
-            var result = SpriteBatchProcessor.ApplyToFolders(
-                _settings,
-                (progress, path) =>
-                {
-                    cancelled = EditorUtility.DisplayCancelableProgressBar(
-                        "Sprite 批次設定", Path.GetFileName(path), progress);
-                },
-                () => cancelled);
+            SpriteBatchProcessor.ApplyResult result;
+            try
+            {
+                result = SpriteBatchProcessor.ApplyToFolders(
+                    _settings,
+                    (progress, path) =>
+                    {
+                        cancelled = EditorUtility.DisplayCancelableProgressBar(
+                            "Sprite 批次設定", Path.GetFileName(path), progress);
+                    },
+                    () => cancelled);
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
 
-            EditorUtility.ClearProgressBar();
-
-            string report = $"成功：{result.successCount} 張\n" +
-                            $"跳過（尺寸不符）：{result.skippedPaths.Count} 張\n" +
-                            $"失敗（其他錯誤）：{result.failedPaths.Count} 張";
+            string title  = result.wasCancelled ? "已取消" : "套用完成";
+            string report = result.wasCancelled ? "操作已被使用者取消。\n\n" : "";
+            report += $"成功：{result.successCount} 張\n" +
+                      $"跳過（尺寸不符）：{result.skippedPaths.Count} 張\n" +
+                      $"失敗（其他錯誤）：{result.failedPaths.Count} 張";
 
             if (result.skippedPaths.Count > 0 || result.failedPaths.Count > 0)
             {
@@ -219,7 +229,7 @@ namespace SpriteBatch
                           string.Join("\n", result.skippedPaths.Concat(result.failedPaths));
             }
 
-            EditorUtility.DisplayDialog("套用完成", report, "確認");
+            EditorUtility.DisplayDialog(title, report, "確認");
             RefreshTexturePaths();
         }
     }

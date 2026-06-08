@@ -22,6 +22,11 @@ namespace SpriteBatch
         public static bool ValidateRectBounds(SpriteRectDef rectDef, int imageWidth, int imageHeight, out string error)
         {
             error = null;
+            if (rectDef.rect.width <= 0 || rectDef.rect.height <= 0)
+            {
+                error = $"切割區域 '{rectDef.nameSuffix}' 的寬度和高度必須大於零。";
+                return false;
+            }
             if (rectDef.rect.x < 0 || rectDef.rect.y < 0)
             {
                 error = $"切割區域 '{rectDef.nameSuffix}' 的起點座標不可為負值。";
@@ -62,6 +67,7 @@ namespace SpriteBatch
             public int successCount;
             public List<string> skippedPaths;  // 尺寸不符
             public List<string> failedPaths;   // 其他錯誤
+            public bool wasCancelled;
         }
 
         public static ApplyResult ApplyToFolders(
@@ -89,7 +95,11 @@ namespace SpriteBatch
 
             for (int i = 0; i < allPaths.Count; i++)
             {
-                if (isCancelled != null && isCancelled()) break;
+                if (isCancelled != null && isCancelled())
+                {
+                    result.wasCancelled = true;
+                    break;
+                }
 
                 var path = allPaths[i];
                 onProgress?.Invoke((i + 1f) / allPaths.Count, path);
