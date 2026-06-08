@@ -72,6 +72,15 @@ namespace SpriteBatch.Tests
             Assert.IsNotNull(error);
         }
 
+        [Test]
+        public void ValidateRectBounds_負數座標_回傳false()
+        {
+            var def = new SpriteRectDef { nameSuffix = "_0", rect = new Rect(-10, 0, 50, 50) };
+            bool valid = SpriteBatchProcessor.ValidateRectBounds(def, 160, 551, out string error);
+            Assert.IsFalse(valid);
+            Assert.IsNotNull(error);
+        }
+
         // --- BuildSpriteMetaData ---
 
         [Test]
@@ -79,8 +88,8 @@ namespace SpriteBatch.Tests
         {
             var rects = new List<SpriteRectDef>
             {
-                new SpriteRectDef { nameSuffix = "_0", rect = new Rect(0, 463, 160, 88),  pivot = new Vector2(0.5f, 0.5f) },
-                new SpriteRectDef { nameSuffix = "_1", rect = new Rect(0, 409, 160, 170), pivot = new Vector2(0f,   0f)   }
+                new SpriteRectDef { nameSuffix = "_0", rect = new Rect(0, 463, 160, 88),  pivot = new Vector2(0.5f, 0.5f), alignment = SpriteAlignment.Center   },
+                new SpriteRectDef { nameSuffix = "_1", rect = new Rect(0, 409, 160, 170), pivot = new Vector2(0f,   0f),   alignment = SpriteAlignment.BottomLeft }
             };
 
             var metadata = SpriteBatchProcessor.BuildSpriteMetaData("Icon00_6_0win_00", rects);
@@ -89,8 +98,10 @@ namespace SpriteBatch.Tests
             Assert.AreEqual("Icon00_6_0win_00_0", metadata[0].name);
             Assert.AreEqual(new Rect(0, 463, 160, 88), metadata[0].rect);
             Assert.AreEqual(new Vector2(0.5f, 0.5f), metadata[0].pivot);
+            Assert.AreEqual((int)SpriteAlignment.Center, metadata[0].alignment);
             Assert.AreEqual("Icon00_6_0win_00_1", metadata[1].name);
             Assert.AreEqual(new Vector2(0f, 0f), metadata[1].pivot);
+            Assert.AreEqual((int)SpriteAlignment.BottomLeft, metadata[1].alignment);
         }
     }
 }

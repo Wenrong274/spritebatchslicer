@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -23,6 +21,11 @@ namespace SpriteBatch
         public static bool ValidateRectBounds(SpriteRectDef rectDef, int imageWidth, int imageHeight, out string error)
         {
             error = null;
+            if (rectDef.rect.x < 0 || rectDef.rect.y < 0)
+            {
+                error = $"切割區域 '{rectDef.nameSuffix}' 的起點座標不可為負值。";
+                return false;
+            }
             if (rectDef.rect.x + rectDef.rect.width > imageWidth)
             {
                 error = $"切割區域 '{rectDef.nameSuffix}' 超出圖片寬度（{imageWidth}px）。";
