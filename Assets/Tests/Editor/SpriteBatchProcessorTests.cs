@@ -109,6 +109,7 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(new Vector2(0.5f, 0.5f), metadata[0].pivot);
             Assert.AreEqual((int)SpriteAlignment.Center, metadata[0].alignment);
             Assert.AreEqual("Icon00_6_0win_00_1", metadata[1].name);
+            Assert.AreEqual(new Rect(0, 409, 160, 170), metadata[1].rect);
             Assert.AreEqual(new Vector2(0f, 0f), metadata[1].pivot);
             Assert.AreEqual((int)SpriteAlignment.BottomLeft, metadata[1].alignment);
         }

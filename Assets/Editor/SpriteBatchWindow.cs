@@ -119,6 +119,7 @@ namespace SpriteBatch
             }
 
             var names    = _previewNames ?? System.Array.Empty<string>();
+            _previewIndex = Mathf.Clamp(_previewIndex, 0, Mathf.Max(0, _allTexturePaths.Count - 1));
             int newIndex = EditorGUILayout.Popup(_previewIndex, names);
             if (newIndex != _previewIndex || _previewTexture == null)
             {
