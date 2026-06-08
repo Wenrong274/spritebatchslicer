@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -76,27 +75,34 @@ namespace SpriteBatch
                 failedPaths  = new List<string>()
             };
 
-            var allPaths = new List<string>();
+            var pathSet = new HashSet<string>();
             foreach (var folder in settings.targetFolders)
             {
                 if (folder == null) continue;
                 var folderPath = AssetDatabase.GetAssetPath(folder);
+                if (string.IsNullOrEmpty(folderPath)) continue;
                 var guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath });
                 foreach (var guid in guids)
-                    allPaths.Add(AssetDatabase.GUIDToAssetPath(guid));
+                    pathSet.Add(AssetDatabase.GUIDToAssetPath(guid));
             }
+            var allPaths = new List<string>(pathSet);
 
             for (int i = 0; i < allPaths.Count; i++)
             {
                 if (isCancelled != null && isCancelled()) break;
 
                 var path = allPaths[i];
-                onProgress?.Invoke((float)i / allPaths.Count, path);
+                onProgress?.Invoke((i + 1f) / allPaths.Count, path);
 
                 try
                 {
                     var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-                    if (importer == null) continue;
+                    if (importer == null)
+                    {
+                        Debug.LogWarning($"[Sprite 批次設定] 無法取得 TextureImporter：{path}");
+                        result.failedPaths.Add(path);
+                        continue;
+                    }
 
                     importer.GetSourceTextureWidthAndHeight(out int width, out int height);
 
