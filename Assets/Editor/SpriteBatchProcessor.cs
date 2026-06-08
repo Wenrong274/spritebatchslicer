@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -54,6 +56,83 @@ namespace SpriteBatch
                 };
             }
             return metadata;
+        }
+
+        public struct ApplyResult
+        {
+            public int successCount;
+            public List<string> skippedPaths;  // 尺寸不符
+            public List<string> failedPaths;   // 其他錯誤
+        }
+
+        public static ApplyResult ApplyToFolders(
+            BatchSettings settings,
+            System.Action<float, string> onProgress = null,
+            System.Func<bool> isCancelled = null)
+        {
+            var result = new ApplyResult
+            {
+                skippedPaths = new List<string>(),
+                failedPaths  = new List<string>()
+            };
+
+            var allPaths = new List<string>();
+            foreach (var folder in settings.targetFolders)
+            {
+                if (folder == null) continue;
+                var folderPath = AssetDatabase.GetAssetPath(folder);
+                var guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath });
+                foreach (var guid in guids)
+                    allPaths.Add(AssetDatabase.GUIDToAssetPath(guid));
+            }
+
+            for (int i = 0; i < allPaths.Count; i++)
+            {
+                if (isCancelled != null && isCancelled()) break;
+
+                var path = allPaths[i];
+                onProgress?.Invoke((float)i / allPaths.Count, path);
+
+                try
+                {
+                    var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                    if (importer == null) continue;
+
+                    importer.GetSourceTextureWidthAndHeight(out int width, out int height);
+
+                    bool boundsOk = true;
+                    foreach (var rectDef in settings.spriteRects)
+                    {
+                        if (!ValidateRectBounds(rectDef, width, height, out string boundsError))
+                        {
+                            Debug.LogError($"[Sprite 批次設定] {Path.GetFileName(path)}: {boundsError}");
+                            boundsOk = false;
+                            break;
+                        }
+                    }
+                    if (!boundsOk) { result.skippedPaths.Add(path); continue; }
+
+                    importer.textureType         = TextureImporterType.Sprite;
+                    importer.spriteImportMode    = SpriteImportMode.Multiple;
+                    importer.filterMode          = settings.filterMode;
+                    importer.alphaIsTransparency = settings.alphaIsTransparency;
+                    importer.maxTextureSize      = settings.maxTextureSize;
+                    importer.textureCompression  = settings.compression;
+
+                    importer.spritesheet = BuildSpriteMetaData(
+                        Path.GetFileNameWithoutExtension(path), settings.spriteRects);
+
+                    importer.SaveAndReimport();
+                    result.successCount++;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"[Sprite 批次設定] 處理失敗 {path}: {ex.Message}");
+                    result.failedPaths.Add(path);
+                }
+            }
+
+            return result;
         }
     }
 }
