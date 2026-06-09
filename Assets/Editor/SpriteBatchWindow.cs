@@ -108,7 +108,44 @@ namespace SpriteBatch
             EditorGUILayout.EndScrollView();
         }
 
-        private void DrawFolderSection() { _folderList.DoLayoutList(); }
+        private void DrawFolderSection()
+        {
+            float listHeight = _folderList.GetHeight();
+            Rect listRect = GUILayoutUtility.GetRect(0f, listHeight, GUILayout.ExpandWidth(true));
+            _folderList.DoList(listRect);
+            HandleFolderDrop(listRect);
+        }
+
+        private void HandleFolderDrop(Rect dropRect)
+        {
+            var evt = Event.current;
+            if (!dropRect.Contains(evt.mousePosition))
+            {
+                return;
+            }
+
+            if (evt.type == EventType.DragUpdated)
+            {
+                bool hasFolder = DragAndDrop.objectReferences.Any(obj =>
+                    obj is DefaultAsset &&
+                    AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(obj)));
+                DragAndDrop.visualMode = hasFolder
+                    ? DragAndDropVisualMode.Copy
+                    : DragAndDropVisualMode.Rejected;
+                evt.Use();
+            }
+            else if (evt.type == EventType.DragPerform)
+            {
+                DragAndDrop.AcceptDrag();
+                var newFolders = FilterNewFolders(_settings.TargetFolders, DragAndDrop.objectReferences);
+                if (newFolders.Count > 0)
+                {
+                    _settings.TargetFolders.AddRange(newFolders);
+                    RefreshTexturePaths();
+                }
+                evt.Use();
+            }
+        }
         private void DrawRectSection() { _rectList.DoLayoutList(); }
 
         private void DrawTextureSettingsSection()
