@@ -166,5 +166,17 @@ namespace SpriteBatch.Tests
 
             Assert.AreEqual(0, result.Count);
         }
+
+        [Test]
+        public void FilterNewFolders_批次內重複資料夾_只加入一次()
+        {
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
+            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+
+            var result = SpriteBatchWindow.FilterNewFolders(
+                new List<DefaultAsset>(), new Object[] { folder, folder });
+
+            Assert.AreEqual(1, result.Count);
+        }
     }
 }

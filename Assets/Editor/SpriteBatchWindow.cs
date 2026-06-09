@@ -225,7 +225,7 @@ namespace SpriteBatch
                 {
                     continue;
                 }
-                if (existing.Contains(asset))
+                if (existing.Contains(asset) || result.Contains(asset))
                 {
                     continue;
                 }
