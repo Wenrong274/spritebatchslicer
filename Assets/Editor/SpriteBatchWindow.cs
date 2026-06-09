@@ -211,6 +211,29 @@ namespace SpriteBatch
             Repaint();
         }
 
+        public static List<DefaultAsset> FilterNewFolders(
+            List<DefaultAsset> existing, IEnumerable<Object> dragged)
+        {
+            var result = new List<DefaultAsset>();
+            foreach (var obj in dragged)
+            {
+                if (obj is not DefaultAsset asset)
+                {
+                    continue;
+                }
+                if (!AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(obj)))
+                {
+                    continue;
+                }
+                if (existing.Contains(asset))
+                {
+                    continue;
+                }
+                result.Add(asset);
+            }
+            return result;
+        }
+
         private void ApplyAll()
         {
             var folderPaths = _settings.TargetFolders

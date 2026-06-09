@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace SpriteBatch.Tests
@@ -125,6 +126,45 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(new Rect(0, 409, 160, 170), result[1].rect);
             Assert.AreEqual(new Vector2(0f, 0f), result[1].pivot);
             Assert.AreEqual(SpriteAlignment.BottomLeft, result[1].alignment);
+        }
+    }
+
+    public class SpriteBatchWindowTests
+    {
+        [Test]
+        public void FilterNewFolders_重複資料夾_不加入()
+        {
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
+            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+            var existing = new List<DefaultAsset> { folder };
+
+            var result = SpriteBatchWindow.FilterNewFolders(existing, new Object[] { folder });
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void FilterNewFolders_新資料夾_加入()
+        {
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
+            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+
+            var result = SpriteBatchWindow.FilterNewFolders(new List<DefaultAsset>(), new Object[] { folder });
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(folder, result[0]);
+        }
+
+        [Test]
+        public void FilterNewFolders_非資料夾物件_略過()
+        {
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/Sprites/Icon00_6_0win/Icon00_6_0win_00.png");
+            Assume.That(texture, Is.Not.Null, "測試素材 Icon00_6_0win_00.png 不存在");
+
+            var result = SpriteBatchWindow.FilterNewFolders(new List<DefaultAsset>(), new Object[] { texture });
+
+            Assert.AreEqual(0, result.Count);
         }
     }
 }
