@@ -1,0 +1,561 @@
+root = true
+
+# 所有檔案的基本規則
+[*]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 160
+csharp_max_line_length = 160
+
+[*.{yml,yaml}]
+indent_size = 2
+
+# ================================================================
+# C# 原始碼
+# ================================================================
+[*.cs]
+
+# ----------------------------------------------------------------
+# 存取修飾詞
+# ----------------------------------------------------------------
+
+# 所有成員必須明確標示存取修飾詞
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# 強制規範修飾詞的先後順序 (MS 標準規範)
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+
+# ----------------------------------------------------------------
+# 命名慣例
+# ----------------------------------------------------------------
+
+# 介面以 I 開頭（PascalCase）
+dotnet_naming_rule.interface_prefix.severity = warning
+dotnet_naming_rule.interface_prefix.symbols = interface
+dotnet_naming_rule.interface_prefix.style = prefix_i
+
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = *
+
+dotnet_naming_style.prefix_i.required_prefix = I
+dotnet_naming_style.prefix_i.capitalization = pascal_case
+
+# 私有常數使用 PascalCase（const 不加底線前綴，需在 private_field 之前宣告以優先匹配）
+dotnet_naming_rule.private_const_pascal_case.severity = warning
+dotnet_naming_rule.private_const_pascal_case.symbols = private_constants
+dotnet_naming_rule.private_const_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.private_constants.applicable_kinds = field
+dotnet_naming_symbols.private_constants.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants.required_modifiers = const
+
+# 私有欄位以底線開頭（camelCase）
+# 設 suggestion：舊專案無 _ 習慣，避免警告牆；搭配童子軍原則逐檔遷移，收斂後可升回 warning
+dotnet_naming_rule.private_field_underscore.severity = suggestion
+dotnet_naming_rule.private_field_underscore.symbols = private_fields
+dotnet_naming_rule.private_field_underscore.style = prefix_underscore
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.prefix_underscore.required_prefix = _
+dotnet_naming_style.prefix_underscore.capitalization = camel_case
+
+# 型別與非私有欄位使用 PascalCase（方法/屬性/事件改由下方獨立規則涵蓋全部存取層級）
+# 注意：interface 不納入，避免與 interface_prefix 規則衝突
+dotnet_naming_rule.types_and_members.severity = warning
+dotnet_naming_rule.types_and_members.symbols = types_and_public_members
+dotnet_naming_rule.types_and_members.style = pascal_case_style
+
+dotnet_naming_symbols.types_and_public_members.applicable_kinds = class, struct, record, record_struct, enum, delegate, field
+dotnet_naming_symbols.types_and_public_members.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+
+# 私有靜態唯讀欄位使用 PascalCase (視同常數)
+dotnet_naming_rule.private_static_readonly_pascal_case.severity = warning
+dotnet_naming_rule.private_static_readonly_pascal_case.symbols = private_static_readonly
+dotnet_naming_rule.private_static_readonly_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.private_static_readonly.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly.required_modifiers = static, readonly
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# 參數與區域變數使用 camelCase
+dotnet_naming_rule.parameters_and_locals.severity = warning
+dotnet_naming_rule.parameters_and_locals.symbols = parameters_and_locals
+dotnet_naming_rule.parameters_and_locals.style = camel_case_style
+
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter, local
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# 泛型型別參數以 T 開頭（PascalCase）
+dotnet_naming_rule.type_parameters_t_prefix.severity = warning
+dotnet_naming_rule.type_parameters_t_prefix.symbols = type_parameters
+dotnet_naming_rule.type_parameters_t_prefix.style = prefix_t
+
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+
+dotnet_naming_style.prefix_t.required_prefix = T
+dotnet_naming_style.prefix_t.capitalization = pascal_case
+
+# 非同步方法以 Async 結尾
+dotnet_naming_rule.async_methods_end_with_async.severity = suggestion
+dotnet_naming_rule.async_methods_end_with_async.symbols = async_methods
+dotnet_naming_rule.async_methods_end_with_async.style = end_with_async
+
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.required_modifiers = async
+
+dotnet_naming_style.end_with_async.required_suffix = Async
+dotnet_naming_style.end_with_async.capitalization = pascal_case
+
+# 區域函式使用 PascalCase（local_function 是獨立 kind，不同於 local 變數）
+dotnet_naming_rule.local_functions_pascal_case.severity = suggestion
+dotnet_naming_rule.local_functions_pascal_case.symbols = local_functions
+dotnet_naming_rule.local_functions_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+
+# 方法、屬性、事件一律 PascalCase（含 private，方法不分存取層級都要大駝峰）
+# EditorConfig 在處理命名規則時，帶有 required_modifiers (如 async) 的規則會因為較精確 (Specific) 
+# 而優先匹配，因此 Async 方法的後綴規則能正確覆蓋一般方法規則。
+dotnet_naming_rule.methods_properties_events_pascal.severity = warning
+dotnet_naming_rule.methods_properties_events_pascal.symbols = methods_properties_events
+dotnet_naming_rule.methods_properties_events_pascal.style = pascal_case_style
+
+dotnet_naming_symbols.methods_properties_events.applicable_kinds = method, property, event
+dotnet_naming_symbols.methods_properties_events.applicable_accessibilities = *
+
+# ----------------------------------------------------------------
+# using 指示詞
+# ----------------------------------------------------------------
+
+# System.* 優先排序
+dotnet_sort_system_directives_first = true
+# 不在 using 群組間插空行（Unity 第三方命名空間多，分組會過於稀疏）
+dotnet_separate_import_directive_groups = false
+
+# using 指示詞放在 namespace 外部（MS 標準）
+csharp_using_directive_placement = outside_namespace:warning
+
+# ----------------------------------------------------------------
+# 語言關鍵字 vs 型別名稱
+# ----------------------------------------------------------------
+
+# 使用語言關鍵字（string 取代 String、int 取代 Int32）
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+
+# ----------------------------------------------------------------
+# var 使用規則
+# ----------------------------------------------------------------
+
+# 型別明確時使用 var（new List<int>() → var）
+csharp_style_var_when_type_is_apparent = true:suggestion
+# 內建型別不用 var（int、string 等明確標示）
+csharp_style_var_for_built_in_types = false:suggestion
+# 其餘情況不強制
+csharp_style_var_elsewhere = true:silent
+
+# ----------------------------------------------------------------
+# 大括號風格（Allman：另起一行）
+# ----------------------------------------------------------------
+
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+
+# 偏好始終使用大括號（避免無括號 if 造成的維護陷阱）
+csharp_prefer_braces = true:suggestion
+
+# ----------------------------------------------------------------
+# 縮排
+# ----------------------------------------------------------------
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = flush_left
+
+# ----------------------------------------------------------------
+# 空白規則
+# ----------------------------------------------------------------
+
+csharp_space_after_cast = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+
+# 逗號前後
+csharp_space_after_comma = true
+csharp_space_before_comma = false
+
+# 點號前後
+csharp_space_after_dot = false
+csharp_space_before_dot = false
+
+# 控制流程關鍵字後（if、for、while 等）
+csharp_space_after_keywords_in_control_flow_statements = true
+
+# for 敘述分號前後
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_before_semicolon_in_for_statement = false
+
+# 方法名稱與開括號之間
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+
+# 空括號內
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+
+# 方括號
+csharp_space_between_square_brackets = false
+csharp_space_between_empty_square_brackets = false
+csharp_space_before_open_square_bracket = false
+
+# ----------------------------------------------------------------
+# 換行控制
+# ----------------------------------------------------------------
+
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+# 換行時運算子放在行首（MS 標準）
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+
+# ----------------------------------------------------------------
+# Expression-bodied 成員
+# ----------------------------------------------------------------
+
+# 單行屬性允許 expression body（=> 語法）
+csharp_style_expression_bodied_properties = true:suggestion
+# 存取子不強制
+csharp_style_expression_bodied_accessors = true:silent
+# 方法不強制（保持可讀性，註解掉以避免 dotnet format 強制展開成大括號）
+# csharp_style_expression_bodied_methods = false:silent
+# 建構子不強制（註解掉以避免強制展開）
+# csharp_style_expression_bodied_constructors = false:silent
+# Lambda 使用 expression body
+csharp_style_expression_bodied_lambdas = true:suggestion
+# 運算子不強制（註解掉以避免強制展開）
+# csharp_style_expression_bodied_operators = false:silent
+# 索引子允許 expression body
+csharp_style_expression_bodied_indexers = true:suggestion
+# 區域函式不強制（通常有多行邏輯，註解掉以避免強制展開）
+# csharp_style_expression_bodied_local_functions = false:silent
+
+# ----------------------------------------------------------------
+# Pattern Matching
+# ----------------------------------------------------------------
+
+# 用 pattern matching 取代 is + cast
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+# 用 pattern matching 取代 as + null check
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+# 使用 switch expression（C# 8+）
+csharp_style_prefer_switch_expression = true:suggestion
+# 使用 not pattern（is not null，C# 9）
+csharp_style_prefer_not_pattern = true:warning
+# extended property pattern 是 C# 10，Unity C# 9 不支援，停用
+csharp_style_prefer_extended_property_pattern = false:silent
+# null check 優先使用 is null pattern（C# 9）
+csharp_style_prefer_null_check_over_type_check = true:suggestion
+
+# ----------------------------------------------------------------
+# Null 安全
+# ----------------------------------------------------------------
+
+# 偏好 null 合併運算子（?? 與 ??=）
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_prefer_compound_assignment = true:suggestion
+# 偏好 null 條件運算子（?.）
+dotnet_style_null_propagation = true:suggestion
+# 使用 is null 取代 == null
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+# 委派安全呼叫（event?.Invoke() 取代 null 檢查後呼叫）
+csharp_style_conditional_delegate_call = true:warning
+
+# ----------------------------------------------------------------
+# 物件與集合初始化
+# ----------------------------------------------------------------
+
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+# collection expression 是 C# 12，Unity C# 9 不支援，停用
+dotnet_style_prefer_collection_expression = never:silent
+
+# ----------------------------------------------------------------
+# 自動屬性
+# ----------------------------------------------------------------
+
+dotnet_style_prefer_auto_properties = true:warning
+
+# ----------------------------------------------------------------
+# this. 限定詞
+# ----------------------------------------------------------------
+
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+# ----------------------------------------------------------------
+# 括號偏好（Parentheses）
+# ----------------------------------------------------------------
+
+# 算術運算子加括號以提高可讀性（(a + b) * c）
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+# 關係運算子加括號（(a > b) && (c < d)）
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+# 其他二元運算子加括號（&&、||）
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+# 其他運算子不加不必要的括號
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+
+# ----------------------------------------------------------------
+# 現代 C# 語法（C# 7–9，Unity 2022 支援）
+# ----------------------------------------------------------------
+
+# throw expression（?? throw new ...，C# 7+）
+csharp_style_throw_expression = true:suggestion
+
+# inline out 變數宣告（int.TryParse(s, out int result)，C# 7+）
+csharp_style_inlined_variable_declaration = true:warning
+
+# 解構宣告（var (x, y) = point，C# 7+）
+csharp_style_deconstructed_variable_declaration = true:suggestion
+
+# 索引運算子（array[^1]，C# 8+）
+csharp_style_prefer_index_operator = true:suggestion
+
+# 範圍運算子（array[1..3]，C# 8+）
+csharp_style_prefer_range_operator = true:suggestion
+
+# target-typed new（C# 9，型別明確時省略 new 後的型別）
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+dotnet_diagnostic.IDE0090.severity = suggestion
+
+# using 宣告取代 using 區塊（減少巢狀，C# 8+）
+csharp_prefer_simple_using_statement = true:suggestion
+
+# namespace 宣告（block_scoped，file_scoped 是 C# 10 Unity 不支援）
+csharp_style_namespace_declarations = block_scoped:warning
+
+# Primary Constructor 是 C# 12，Unity C# 9 不支援，停用
+csharp_style_prefer_primary_constructors = false:silent
+
+# 建議使用區域函式取代匿名委派
+csharp_style_prefer_local_over_anonymous_function = true:suggestion
+
+# 賦值或表達式未使用時，偏好使用 discard 變數 (_)
+csharp_style_unused_value_expression_statement_preference = discard_variable:suggestion
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+
+# 偏好使用 Method Group 轉換（與 IDE0200 一致）
+csharp_style_prefer_method_group_conversion = true:suggestion
+
+# 使用 default 取代 default(T)（C# 7.1+）
+csharp_prefer_simple_default_expression = true:suggestion
+
+# 無 closure 的區域函式建議加 static（C# 8+）
+csharp_prefer_static_local_function = true:suggestion
+
+# ----------------------------------------------------------------
+# Tuple 與解構
+# ----------------------------------------------------------------
+
+# 明確 tuple 名稱優於 Item1、Item2
+dotnet_style_explicit_tuple_names = true:warning
+# 偏好推斷的 tuple 元素名稱
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+# 偏好推斷的匿名型別成員名稱
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+
+# 偏好使用 Tuple 來交換變數值
+csharp_style_prefer_tuple_swap = true:suggestion
+
+# ----------------------------------------------------------------
+# 條件式表達式
+# ----------------------------------------------------------------
+
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+
+# 簡化布林表達式
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# 簡化字串插值（移除冗餘的 .ToString()）
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# ----------------------------------------------------------------
+# 不必要的程式碼（依 IDE 編號排列）
+# ----------------------------------------------------------------
+
+# IDE0001 簡化型別名稱（移除多餘的命名空間前綴）
+dotnet_diagnostic.IDE0001.severity = suggestion
+# IDE0002 簡化成員存取（移除不必要的類別名稱前綴）
+dotnet_diagnostic.IDE0002.severity = suggestion
+# IDE0004 移除不必要的轉型
+dotnet_diagnostic.IDE0004.severity = warning
+# IDE0005 移除未使用的 using
+dotnet_diagnostic.IDE0005.severity = warning
+# IDE0010 switch 缺少 enum case 時提示
+dotnet_diagnostic.IDE0010.severity = suggestion
+# IDE0051 Unity 反射呼叫的訊息方法（OnEnable、ContextMenu 等）會誤判，改為 suggestion
+dotnet_diagnostic.IDE0051.severity = suggestion
+# IDE0052 移除只寫不讀的私有欄位
+dotnet_diagnostic.IDE0052.severity = warning
+# IDE0055 格式化規則總開關（涵蓋所有空白、縮排、換行設定的違規回報）
+dotnet_diagnostic.IDE0055.severity = suggestion
+# IDE0058 表達式結果未使用
+dotnet_diagnostic.IDE0058.severity = suggestion
+# IDE0060 Unity MonoBehaviour 訊息方法的參數不能移除（OnTriggerEnter 等），改為 suggestion
+dotnet_diagnostic.IDE0060.severity = suggestion
+dotnet_code_quality_unused_parameters = all
+# IDE0072 switch expression 缺少 enum case 時提示
+dotnet_diagnostic.IDE0072.severity = suggestion
+# IDE0075 使用簡化的布林表達式
+dotnet_diagnostic.IDE0075.severity = suggestion
+# IDE0079 移除不必要的 pragma
+dotnet_diagnostic.IDE0079.severity = warning
+# IDE0080 移除不必要的 ! null-forgiving 運算子
+dotnet_diagnostic.IDE0080.severity = warning
+# IDE0082 typeof 轉換成 nameof（重構時更安全）
+dotnet_diagnostic.IDE0082.severity = suggestion
+# IDE0100 移除不必要的等號比較（if (x == true) → if (x)）
+dotnet_diagnostic.IDE0100.severity = warning
+# IDE0110 移除不必要的 discard
+dotnet_diagnostic.IDE0110.severity = suggestion
+# IDE0120 簡化 LINQ 表達式
+dotnet_diagnostic.IDE0120.severity = suggestion
+# IDE0161 明確禁止 file-scoped namespace（C# 10，Unity C# 9 不支援）
+dotnet_diagnostic.IDE0161.severity = none
+# IDE0200 移除不必要的 lambda（改用 method group）
+dotnet_diagnostic.IDE0200.severity = suggestion
+# IDE0220 foreach 迭代非泛型集合時建議加明確轉型
+dotnet_diagnostic.IDE0220.severity = suggestion
+
+# ----------------------------------------------------------------
+# Unity 專屬抑制
+# 強烈建議安裝 Microsoft.Unity.Analyzers，安裝後下列大部分規則會由分析器自動處理誤判。
+# ----------------------------------------------------------------
+
+# 若未來安裝 Microsoft.Unity.Analyzers，下列規則建議移除抑制（加上註解）以保護一般 C# 類別。
+# 目前因未安裝，故維持全域抑制以免 MonoBehaviour 產生大量誤報。
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.IDE0044.severity = none
+
+# Unity 專案 namespace 通常不依照資料夾結構，停用此警告
+dotnet_diagnostic.IDE0130.severity = none
+# [SerializeField] 欄位由 Inspector 賦值，CS0649 誤報為「永遠未賦值」
+dotnet_diagnostic.CS0649.severity = none
+# Unity 是單執行緒模型，不需要 ConfigureAwait
+dotnet_diagnostic.CA2007.severity = none
+# Unity 用 public 欄位在 Inspector 顯示，「不應宣告公開實例欄位」不適用
+dotnet_diagnostic.CA1051.severity = none
+# Unity catch (Exception e) 很常見，「不應捕獲一般例外」不適用
+dotnet_diagnostic.CA1031.severity = none
+# Debug 訊息不需要多語系資源，「字串常值作為本地化參數」不適用
+dotnet_diagnostic.CA1303.severity = none
+
+# ----------------------------------------------------------------
+# 非同步相關
+# ----------------------------------------------------------------
+
+# async 方法缺少 await，將同步執行（UniTask 常見陷阱）
+dotnet_diagnostic.CS1998.severity = warning
+
+# ----------------------------------------------------------------
+# CA 安全正確性規則
+# ----------------------------------------------------------------
+
+# 持有 IDisposable 欄位的類別應實作 IDisposable
+dotnet_diagnostic.CA1001.severity = warning
+# Unity 幾乎不用 finalizer，SuppressFinalize 無意義，停用
+dotnet_diagnostic.CA1816.severity = none
+# IDisposable 欄位應在 Dispose() 內釋放
+dotnet_diagnostic.CA2213.severity = warning
+# 建構子不應呼叫可被覆寫的方法（子類別可能尚未初始化）
+dotnet_diagnostic.CA2214.severity = warning
+# 不應在 finally/catch 區塊內拋出例外（會吞掉原始例外）
+dotnet_diagnostic.CA2219.severity = warning
+# 不應直接拋出 Exception、SystemException 等保留型別
+dotnet_diagnostic.CA2201.severity = warning
+# ArgumentException 建構子參數順序：(message, paramName)
+dotnet_diagnostic.CA2208.severity = warning
+
+# ----------------------------------------------------------------
+# CA 程式碼品質規則
+# ----------------------------------------------------------------
+
+# 不需要明確初始化為預設值（int x = 0 → int x）
+dotnet_diagnostic.CA1805.severity = suggestion
+# 單一字元字串改用 char 重載（sb.Append("x") → sb.Append('x')）
+dotnet_diagnostic.CA1834.severity = suggestion
+# 覆寫 struct Equals() 時也應重載 == 運算子
+dotnet_diagnostic.CA2231.severity = suggestion
+# CancellationToken 參數必須排在最後（UniTask async 方法常見）
+dotnet_diagnostic.CA1068.severity = warning
+# 不應在屬性 getter、== 運算子等非預期位置拋出例外
+dotnet_diagnostic.CA1065.severity = warning
+# 覆寫 Equals() 時應同時實作 IEquatable<T>（與 CA2231 配合）
+dotnet_diagnostic.CA1066.severity = suggestion
+# 例外建構子的參數名稱應用 nameof 而非字串常值（重構安全）
+dotnet_diagnostic.CA1507.severity = warning
+# 避免零長度陣列配置，改用 Array.Empty<T>()（減少 GC 壓力）
+dotnet_diagnostic.CA1825.severity = suggestion
+# 不應對屬性或變數自身賦值
+dotnet_diagnostic.CA2245.severity = warning
+
+# ================================================================
+# XML 專案與設定檔
+# ================================================================
+[*.{csproj,props,targets,config,resx}]
+indent_size = 2
+
+# ================================================================
+# JSON
+# ================================================================
+[*.json]
+indent_size = 2
+
+# ================================================================
+# Markdown
+# ================================================================
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+# ================================================================
+# 方案檔
+# ================================================================
+[*.sln]
+indent_style = tab
+
+# ================================================================
+# Unity 專屬資源檔 (YAML 格式) 與其他必須 LF 的檔案
+# ================================================================
+[*.{unity,prefab,asset,meta,controller,mat,anim,physicMaterial,physicsMaterial2D}]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = false
+# 讓 Unity 資源檔保留原始編碼與換行，避免 Git 衝突
+end_of_line = lf
+
+[*.{sh,bash}]
+end_of_line = lf
+
+[.gitignore]
+end_of_line = lf
