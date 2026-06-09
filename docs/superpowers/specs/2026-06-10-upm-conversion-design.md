@@ -36,20 +36,15 @@ Packages/
     │   ├── SpriteBatchWindow.cs.meta
     │   ├── com.wenrong.spritebatchslicer.Editor.asmdef
     │   └── com.wenrong.spritebatchslicer.Editor.asmdef.meta
-    ├── Tests/
-    │   └── Editor/
-    │       ├── SpriteBatchProcessorTests.cs
-    │       ├── SpriteBatchProcessorTests.cs.meta
-    │       ├── com.wenrong.spritebatchslicer.Tests.asmdef
-    │       └── com.wenrong.spritebatchslicer.Tests.asmdef.meta
-    └── Samples~/
-        └── SampleSprites/
-            ├── Icon00_6_0win/
-            ├── Icon01_6_0win/
-            └── ... (Icon02~06)
+    └── Tests/
+        └── Editor/
+            ├── SpriteBatchProcessorTests.cs
+            ├── SpriteBatchProcessorTests.cs.meta
+            ├── com.wenrong.spritebatchslicer.Tests.asmdef
+            └── com.wenrong.spritebatchslicer.Tests.asmdef.meta
 ```
 
-`Assets/` 保留：`Scenes/`（示範場景）。
+`Assets/` 保留：`Scenes/`、`Sprites/`（範例素材留在 Assets，不移入 Samples~）。
 
 ---
 
@@ -72,7 +67,7 @@ Packages/
 ### 刪除
 - `Assets/Editor/SpriteBatchEditor.asmdef` + `.meta`（以新 asmdef 取代）
 - `Assets/Tests/Editor/SpriteBatchTests.asmdef` + `.meta`（以新 asmdef 取代）
-- `Assets/Editor.meta`、`Assets/Tests.meta`、`Assets/Sprites.meta`（資料夾移除後）
+- `Assets/Editor.meta`、`Assets/Tests.meta`（資料夾移除後）
 
 ---
 
@@ -85,14 +80,7 @@ Packages/
   "displayName": "Sprite Batch Slicer",
   "description": "Unity Editor tool for batch-applying sprite slice settings across multiple folders.",
   "unity": "2022.3",
-  "keywords": ["sprite", "batch", "slicer", "editor", "tool"],
-  "samples": [
-    {
-      "displayName": "Sample Sprites",
-      "description": "範例圖集，用於測試批次切割工具。",
-      "path": "Samples~/SampleSprites"
-    }
-  ]
+  "keywords": ["sprite", "batch", "slicer", "editor", "tool"]
 }
 ```
 

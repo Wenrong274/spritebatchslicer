@@ -20,7 +20,6 @@
 ```bash
 mkdir -p Packages/com.wenrong.spritebatchslicer/Editor
 mkdir -p Packages/com.wenrong.spritebatchslicer/Tests/Editor
-mkdir -p "Packages/com.wenrong.spritebatchslicer/Samples~/SampleSprites"
 ```
 
 - [ ] **Step 2: 建立 package.json**
@@ -34,14 +33,7 @@ mkdir -p "Packages/com.wenrong.spritebatchslicer/Samples~/SampleSprites"
   "displayName": "Sprite Batch Slicer",
   "description": "Unity Editor tool for batch-applying sprite slice settings across multiple folders.",
   "unity": "2022.3",
-  "keywords": ["sprite", "batch", "slicer", "editor", "tool"],
-  "samples": [
-    {
-      "displayName": "Sample Sprites",
-      "description": "範例圖集，用於測試批次切割工具。",
-      "path": "Samples~/SampleSprites"
-    }
-  ]
+  "keywords": ["sprite", "batch", "slicer", "editor", "tool"]
 }
 ```
 
@@ -192,37 +184,7 @@ git commit -m "feat: 移動 Tests 至 UPM Package，更新 asmdef"
 
 ---
 
-### Task 4: 移動範例素材至 Samples~
-
-**Files:**
-- Move: `Assets/Sprites/Icon{00..06}_6_0win/` → `Packages/com.wenrong.spritebatchslicer/Samples~/SampleSprites/`
-- Delete: `Assets/Sprites.meta`
-
-- [ ] **Step 1: git mv 七個 Icon 資料夾（含所有子檔案）及其 .meta**
-
-```bash
-PKG="Packages/com.wenrong.spritebatchslicer/Samples~/SampleSprites"
-for i in 00 01 02 03 04 05 06; do
-  git mv "Assets/Sprites/Icon${i}_6_0win"      "${PKG}/Icon${i}_6_0win"
-  git mv "Assets/Sprites/Icon${i}_6_0win.meta" "${PKG}/Icon${i}_6_0win.meta"
-done
-```
-
-- [ ] **Step 2: 刪除 Assets/Sprites.meta**
-
-```bash
-git rm Assets/Sprites.meta
-```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git commit -m "chore: 移動範例素材至 UPM Samples~"
-```
-
----
-
-### Task 5: 在 Unity Editor 驗證
+### Task 4: 在 Unity Editor 驗證
 
 - [ ] **Step 1: 開啟 Unity 確認無編譯錯誤**
 
