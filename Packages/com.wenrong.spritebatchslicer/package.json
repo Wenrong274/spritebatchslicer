@@ -1,0 +1,8 @@
+{
+  "name": "com.wenrong.spritebatchslicer",
+  "version": "1.0.0",
+  "displayName": "Sprite Batch Slicer",
+  "description": "Unity Editor tool for batch-applying sprite slice settings across multiple folders.",
+  "unity": "2022.3",
+  "keywords": ["sprite", "batch", "slicer", "editor", "tool"]
+}
