@@ -19,7 +19,7 @@ namespace SpriteBatch
         private Texture2D _previewTexture;
         private Vector2 _scrollPos;
 
-        [MenuItem("工具 (Tools)/Sprite 批次設定")]
+        [MenuItem("GameTools/Sprite 批次設定")]
         public static void ShowWindow()
         {
             var window = GetWindow<SpriteBatchWindow>("Sprite 批次設定");
