@@ -1,8 +1,12 @@
 {
     "name": "SpriteBatchEditor",
     "rootNamespace": "SpriteBatch",
-    "references": [],
-    "includePlatforms": ["Editor"],
+    "references": [
+        "GUID:2c573e6b271651846a79655161004c5b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

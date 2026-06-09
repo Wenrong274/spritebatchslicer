@@ -8,20 +8,20 @@ namespace SpriteBatch
     [Serializable]
     public class SpriteRectDef
     {
-        public string nameSuffix = "_0";
-        public Rect rect = new Rect(0, 0, 100, 100);
-        public Vector2 pivot = new Vector2(0.5f, 0.5f);
-        public SpriteAlignment alignment = SpriteAlignment.Center;
+        public string NameSuffix = "_0";
+        public Rect Rect = new(0, 0, 100, 100);
+        public Vector2 Pivot = new(0.5f, 0.5f);
+        public SpriteAlignment Alignment = SpriteAlignment.Center;
     }
 
     [Serializable]
     public class BatchSettings
     {
-        public List<DefaultAsset> targetFolders = new List<DefaultAsset>();
-        public int maxTextureSize = 2048;
-        public FilterMode filterMode = FilterMode.Bilinear;
-        public bool alphaIsTransparency = true;
-        public TextureImporterCompression compression = TextureImporterCompression.Compressed;
-        public List<SpriteRectDef> spriteRects = new List<SpriteRectDef>();
+        public List<DefaultAsset> TargetFolders = new();
+        public int MaxTextureSize = 2048;
+        public FilterMode FilterMode = FilterMode.Bilinear;
+        public bool AlphaIsTransparency = true;
+        public TextureImporterCompression Compression = TextureImporterCompression.Compressed;
+        public List<SpriteRectDef> SpriteRects = new();
     }
 }
