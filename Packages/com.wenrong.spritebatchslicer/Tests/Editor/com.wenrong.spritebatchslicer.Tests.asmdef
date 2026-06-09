@@ -1,8 +1,8 @@
 {
-    "name": "SpriteBatchTests",
+    "name": "com.wenrong.spritebatchslicer.Tests",
     "rootNamespace": "SpriteBatch.Tests",
     "references": [
-        "SpriteBatchEditor",
+        "com.wenrong.spritebatchslicer.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "GUID:2c573e6b271651846a79655161004c5b"
