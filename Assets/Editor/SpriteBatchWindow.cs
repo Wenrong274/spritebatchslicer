@@ -136,16 +136,17 @@ namespace SpriteBatch
             }
             else if (evt.type == EventType.DragPerform)
             {
-                DragAndDrop.AcceptDrag();
                 var newFolders = FilterNewFolders(_settings.TargetFolders, DragAndDrop.objectReferences);
                 if (newFolders.Count > 0)
                 {
+                    DragAndDrop.AcceptDrag();
                     _settings.TargetFolders.AddRange(newFolders);
                     RefreshTexturePaths();
                 }
                 evt.Use();
             }
         }
+
         private void DrawRectSection() { _rectList.DoLayoutList(); }
 
         private void DrawTextureSettingsSection()
