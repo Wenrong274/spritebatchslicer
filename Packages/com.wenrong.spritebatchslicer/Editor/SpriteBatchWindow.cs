@@ -286,14 +286,16 @@ namespace SpriteBatch
                 {
                     string ext = Path.GetExtension(p);
                     return p.StartsWith("Assets/")
-                        ? p["Assets/".Length..^ext.Length]
+                        ? (p["Assets/".Length..^ext.Length] is { Length: > 0 } rel ? rel : Path.GetFileNameWithoutExtension(p))
                         : Path.GetFileNameWithoutExtension(p);
                 })
                 .ToArray();
 
             int restored = preservedPath != null ? _allTexturePaths.IndexOf(preservedPath) : -1;
-            _previewIndex = restored >= 0 ? restored : 0;
-            _previewTexture = null;
+            int newIndex = restored >= 0 ? restored : 0;
+            if (newIndex != _previewIndex)
+                _previewTexture = null;
+            _previewIndex = newIndex;
             Repaint();
         }
 
