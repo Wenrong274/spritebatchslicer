@@ -23,7 +23,7 @@ namespace SpriteBatch
         public static void ShowWindow()
         {
             var window = GetWindow<SpriteBatchWindow>("Sprite 批次設定");
-            window.minSize = new Vector2(440, 620);
+            window.minSize = new Vector2(520, 620);
             window.Show();
         }
 
@@ -63,7 +63,7 @@ namespace SpriteBatch
                 _settings.SpriteRects, typeof(SpriteRectDef), true, true, true, true)
             {
                 drawHeaderCallback = rect =>
-                    EditorGUI.LabelField(rect, "Sprite 切割 (後綴 | X | Y | W | H | Pivot X | Pivot Y)"),
+                    EditorGUI.LabelField(rect, "Sprite 切割 (後綴 | X | Y | W | H | Pivot X | Pivot Y | 對齊)"),
                 elementHeight = EditorGUIUtility.singleLineHeight + 4,
                 drawElementCallback = DrawRectElement,
                 onAddCallback = _ => _settings.SpriteRects.Add(new SpriteRectDef())
@@ -88,6 +88,8 @@ namespace SpriteBatch
             def.Pivot.x = EditorGUI.FloatField(new Rect(x, y, 38, h), def.Pivot.x);
             x += 42;
             def.Pivot.y = EditorGUI.FloatField(new Rect(x, y, 38, h), def.Pivot.y);
+            x += 42;
+            def.Alignment = (SpriteAlignment)EditorGUI.EnumPopup(new Rect(x, y, 84, h), def.Alignment);
         }
 
         private void OnGUI()
