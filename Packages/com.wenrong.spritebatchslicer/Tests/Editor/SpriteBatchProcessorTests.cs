@@ -127,6 +127,42 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(new Vector2(0f, 0f), result[1].pivot);
             Assert.AreEqual(SpriteAlignment.BottomLeft, result[1].alignment);
         }
+
+        [Test]
+        public void BuildSpriteRects_有既有GUID_保留既有GUID()
+        {
+            var existingId = GUID.Generate();
+            var existingIds = new Dictionary<string, GUID> { { "Icon_0", existingId } };
+            var rects = new List<SpriteRectDef> { new() { NameSuffix = "_0" } };
+
+            var result = SpriteBatchProcessor.BuildSpriteRects("Icon", rects, existingIds);
+
+            Assert.AreEqual(existingId, result[0].spriteID);
+        }
+
+        [Test]
+        public void BuildSpriteRects_無既有GUID_產生非零GUID()
+        {
+            var rects = new List<SpriteRectDef> { new() { NameSuffix = "_0" } };
+
+            var result = SpriteBatchProcessor.BuildSpriteRects("Icon", rects, null);
+
+            Assert.AreNotEqual(new GUID(), result[0].spriteID);
+        }
+
+        [Test]
+        public void BuildSpriteRects_兩筆切割_GUID各不相同()
+        {
+            var rects = new List<SpriteRectDef>
+            {
+                new() { NameSuffix = "_0" },
+                new() { NameSuffix = "_1" }
+            };
+
+            var result = SpriteBatchProcessor.BuildSpriteRects("Icon", rects, null);
+
+            Assert.AreNotEqual(result[0].spriteID, result[1].spriteID);
+        }
     }
 
     public class SpriteBatchWindowTests

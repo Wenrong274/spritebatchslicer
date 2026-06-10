@@ -155,8 +155,13 @@ namespace SpriteBatch
                     var dataProvider = factory.GetSpriteEditorDataProviderFromObject(importer);
                     dataProvider.InitSpriteEditorDataProvider();
 
+                    var existingRects = dataProvider.GetSpriteRects();
+                    var existingIds = new Dictionary<string, GUID>();
+                    foreach (var r in existingRects)
+                        existingIds[r.name] = r.spriteID;
+
                     dataProvider.SetSpriteRects(BuildSpriteRects(
-                        Path.GetFileNameWithoutExtension(path), settings.SpriteRects));
+                        Path.GetFileNameWithoutExtension(path), settings.SpriteRects, existingIds));
 
                     dataProvider.Apply();
 
@@ -173,18 +178,26 @@ namespace SpriteBatch
             return result;
         }
 
-        public static SpriteRect[] BuildSpriteRects(string assetFileName, List<SpriteRectDef> spriteRects)
+        public static SpriteRect[] BuildSpriteRects(
+            string assetFileName,
+            List<SpriteRectDef> spriteRects,
+            Dictionary<string, GUID> existingIds = null)
         {
             var rects = new SpriteRect[spriteRects.Count];
             for (int i = 0; i < spriteRects.Count; i++)
             {
                 var def = spriteRects[i];
+                string name = assetFileName + def.NameSuffix;
+                GUID id = (existingIds != null && existingIds.TryGetValue(name, out GUID found))
+                    ? found
+                    : GUID.Generate();
                 rects[i] = new SpriteRect
                 {
-                    name = assetFileName + def.NameSuffix,
+                    name = name,
                     rect = def.Rect,
                     pivot = def.Pivot,
-                    alignment = def.Alignment
+                    alignment = def.Alignment,
+                    spriteID = id
                 };
             }
             return rects;
