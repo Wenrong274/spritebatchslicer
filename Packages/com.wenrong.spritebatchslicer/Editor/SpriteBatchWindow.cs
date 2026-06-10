@@ -19,7 +19,7 @@ namespace SpriteBatch
         private Texture2D _previewTexture;
         private Vector2 _scrollPos;
 
-        [MenuItem("GameTools/Sprite 批次設定")]
+        [MenuItem("Tools/Sprite 批次設定")]
         public static void ShowWindow()
         {
             var window = GetWindow<SpriteBatchWindow>("Sprite 批次設定");
@@ -52,8 +52,7 @@ namespace SpriteBatch
                         }
                     },
                 onAddCallback = _ => { _settings.TargetFolders.Add(null); RefreshTexturePaths(); },
-                onRemoveCallback = list => { _settings.TargetFolders.RemoveAt(list.index); RefreshTexturePaths(); },
-                onChangedCallback = _ => RefreshTexturePaths()
+                onRemoveCallback = list => { _settings.TargetFolders.RemoveAt(list.index); RefreshTexturePaths(); }
             };
         }
 
@@ -138,10 +137,10 @@ namespace SpriteBatch
             }
             else if (evt.type == EventType.DragPerform)
             {
+                DragAndDrop.AcceptDrag();
                 var newFolders = FilterNewFolders(_settings.TargetFolders, DragAndDrop.objectReferences);
                 if (newFolders.Count > 0)
                 {
-                    DragAndDrop.AcceptDrag();
                     _settings.TargetFolders.AddRange(newFolders);
                     RefreshTexturePaths();
                 }
