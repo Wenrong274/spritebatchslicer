@@ -105,74 +105,82 @@ namespace SpriteBatch
 
             var allPaths = new List<string>(pathSet);
 
-            for (int i = 0; i < allPaths.Count; i++)
+            AssetDatabase.StartAssetEditing();
+            try
             {
-                if (isCancelled is not null && isCancelled())
+                for (int i = 0; i < allPaths.Count; i++)
                 {
-                    result.WasCancelled = true;
-                    break;
-                }
-
-                string path = allPaths[i];
-                onProgress?.Invoke((i + 1f) / allPaths.Count, path);
-
-                try
-                {
-                    if (AssetImporter.GetAtPath(path) is not TextureImporter importer)
+                    if (isCancelled is not null && isCancelled())
                     {
-                        Debug.LogWarning($"[Sprite 批次設定] 無法取得 TextureImporter：{path}");
-                        result.FailedPaths.Add(path);
-                        continue;
+                        result.WasCancelled = true;
+                        break;
                     }
 
-                    importer.GetSourceTextureWidthAndHeight(out int width, out int height);
+                    string path = allPaths[i];
+                    onProgress?.Invoke((i + 1f) / allPaths.Count, path);
 
-                    bool boundsOk = true;
-                    foreach (var rectDef in settings.SpriteRects)
+                    try
                     {
-                        if (!ValidateRectBounds(rectDef, width, height, out string boundsError))
+                        if (AssetImporter.GetAtPath(path) is not TextureImporter importer)
                         {
-                            Debug.LogError($"[Sprite 批次設定] {Path.GetFileName(path)}: {boundsError}");
-                            boundsOk = false;
-                            break;
+                            Debug.LogWarning($"[Sprite 批次設定] 無法取得 TextureImporter：{path}");
+                            result.FailedPaths.Add(path);
+                            continue;
                         }
+
+                        importer.GetSourceTextureWidthAndHeight(out int width, out int height);
+
+                        bool boundsOk = true;
+                        foreach (var rectDef in settings.SpriteRects)
+                        {
+                            if (!ValidateRectBounds(rectDef, width, height, out string boundsError))
+                            {
+                                Debug.LogError($"[Sprite 批次設定] {Path.GetFileName(path)}: {boundsError}");
+                                boundsOk = false;
+                                break;
+                            }
+                        }
+                        if (!boundsOk)
+                        {
+                            result.SkippedPaths.Add(path);
+                            continue;
+                        }
+
+                        importer.textureType = TextureImporterType.Sprite;
+                        importer.spriteImportMode = SpriteImportMode.Multiple;
+                        importer.filterMode = settings.FilterMode;
+                        importer.alphaIsTransparency = settings.AlphaIsTransparency;
+                        importer.maxTextureSize = settings.MaxTextureSize;
+                        importer.textureCompression = settings.Compression;
+
+                        var factory = new SpriteDataProviderFactories();
+                        factory.Init();
+                        var dataProvider = factory.GetSpriteEditorDataProviderFromObject(importer);
+                        dataProvider.InitSpriteEditorDataProvider();
+
+                        var existingRects = dataProvider.GetSpriteRects();
+                        var existingIds = new Dictionary<string, GUID>();
+                        foreach (var r in existingRects)
+                            existingIds[r.name] = r.spriteID;
+
+                        dataProvider.SetSpriteRects(BuildSpriteRects(
+                            Path.GetFileNameWithoutExtension(path), settings.SpriteRects, existingIds));
+
+                        dataProvider.Apply();
+
+                        importer.SaveAndReimport();
+                        result.SuccessCount++;
                     }
-                    if (!boundsOk)
+                    catch (System.Exception ex)
                     {
-                        result.SkippedPaths.Add(path);
-                        continue;
+                        Debug.LogWarning($"[Sprite 批次設定] 處理失敗 {path}: {ex.Message}");
+                        result.FailedPaths.Add(path);
                     }
-
-                    importer.textureType = TextureImporterType.Sprite;
-                    importer.spriteImportMode = SpriteImportMode.Multiple;
-                    importer.filterMode = settings.FilterMode;
-                    importer.alphaIsTransparency = settings.AlphaIsTransparency;
-                    importer.maxTextureSize = settings.MaxTextureSize;
-                    importer.textureCompression = settings.Compression;
-
-                    var factory = new SpriteDataProviderFactories();
-                    factory.Init();
-                    var dataProvider = factory.GetSpriteEditorDataProviderFromObject(importer);
-                    dataProvider.InitSpriteEditorDataProvider();
-
-                    var existingRects = dataProvider.GetSpriteRects();
-                    var existingIds = new Dictionary<string, GUID>();
-                    foreach (var r in existingRects)
-                        existingIds[r.name] = r.spriteID;
-
-                    dataProvider.SetSpriteRects(BuildSpriteRects(
-                        Path.GetFileNameWithoutExtension(path), settings.SpriteRects, existingIds));
-
-                    dataProvider.Apply();
-
-                    importer.SaveAndReimport();
-                    result.SuccessCount++;
                 }
-                catch (System.Exception ex)
-                {
-                    Debug.LogWarning($"[Sprite 批次設定] 處理失敗 {path}: {ex.Message}");
-                    result.FailedPaths.Add(path);
-                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
             }
 
             return result;
