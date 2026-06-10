@@ -143,6 +143,18 @@ namespace SpriteBatch
             Rect listRect = GUILayoutUtility.GetRect(0f, listHeight, GUILayout.ExpandWidth(true));
             _folderList.DoList(listRect);
             HandleFolderDrop(listRect);
+
+            if (_settings.TargetFolders.Count == 0)
+            {
+                var hintRect = new Rect(listRect.x + 4, listRect.y + 21, listRect.width - 8, 36);
+                EditorGUI.DrawRect(hintRect, new Color(1f, 1f, 1f, 0.03f));
+                var style = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+                {
+                    wordWrap = false,
+                    normal = { textColor = new Color(0.6f, 0.6f, 0.6f) }
+                };
+                GUI.Label(hintRect, "將資料夾從 Project 窗口拖曳至此", style);
+            }
         }
 
         private void HandleFolderDrop(Rect dropRect)
