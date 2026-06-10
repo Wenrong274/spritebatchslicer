@@ -95,7 +95,12 @@ namespace SpriteBatch
             x += 42;
             def.Pivot.y = EditorGUI.FloatField(new Rect(x, y, 38, h), def.Pivot.y);
             x += 42;
-            def.Alignment = (SpriteAlignment)EditorGUI.EnumPopup(new Rect(x, y, 84, h), def.Alignment);
+            var newAlignment = (SpriteAlignment)EditorGUI.EnumPopup(new Rect(x, y, 84, h), def.Alignment);
+            if (newAlignment != def.Alignment)
+            {
+                def.Alignment = newAlignment;
+                def.Pivot = AlignmentToPivot(newAlignment, def.Pivot);
+            }
         }
 
         private void OnGUI()
@@ -280,6 +285,21 @@ namespace SpriteBatch
             }
             return result;
         }
+
+        public static Vector2 AlignmentToPivot(SpriteAlignment alignment, Vector2 current) =>
+            alignment switch
+            {
+                SpriteAlignment.TopLeft      => new Vector2(0f,   1f),
+                SpriteAlignment.TopCenter    => new Vector2(0.5f, 1f),
+                SpriteAlignment.TopRight     => new Vector2(1f,   1f),
+                SpriteAlignment.LeftCenter   => new Vector2(0f,   0.5f),
+                SpriteAlignment.Center       => new Vector2(0.5f, 0.5f),
+                SpriteAlignment.RightCenter  => new Vector2(1f,   0.5f),
+                SpriteAlignment.BottomLeft   => new Vector2(0f,   0f),
+                SpriteAlignment.BottomCenter => new Vector2(0.5f, 0f),
+                SpriteAlignment.BottomRight  => new Vector2(1f,   0f),
+                _                            => current,
+            };
 
         private void ApplyAll()
         {

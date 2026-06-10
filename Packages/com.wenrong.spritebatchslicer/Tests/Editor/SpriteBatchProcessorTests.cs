@@ -214,5 +214,36 @@ namespace SpriteBatch.Tests
 
             Assert.AreEqual(1, result.Count);
         }
+
+        // --- AlignmentToPivot ---
+
+        [Test]
+        public void AlignmentToPivot_TopLeft_回傳_0_1()
+        {
+            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.TopLeft, Vector2.zero);
+            Assert.AreEqual(new Vector2(0f, 1f), result);
+        }
+
+        [Test]
+        public void AlignmentToPivot_BottomRight_回傳_1_0()
+        {
+            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.BottomRight, Vector2.zero);
+            Assert.AreEqual(new Vector2(1f, 0f), result);
+        }
+
+        [Test]
+        public void AlignmentToPivot_Center_回傳_05_05()
+        {
+            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.Center, Vector2.zero);
+            Assert.AreEqual(new Vector2(0.5f, 0.5f), result);
+        }
+
+        [Test]
+        public void AlignmentToPivot_Custom_不改變Pivot()
+        {
+            var original = new Vector2(0.3f, 0.7f);
+            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.Custom, original);
+            Assert.AreEqual(original, result);
+        }
     }
 }
