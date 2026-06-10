@@ -74,7 +74,9 @@ namespace SpriteBatch
                 _settings.SpriteRects, typeof(SpriteRectDef), true, true, true, true)
             {
                 drawHeaderCallback = rect =>
-                    EditorGUI.LabelField(rect, "Sprite 切割 (後綴 | X | Y | W | H | Pivot X | Pivot Y | 對齊)"),
+                    EditorGUI.LabelField(
+                        new Rect(rect.x + 20, rect.y, rect.width - 20, rect.height),
+                        "Sprite 切割 (後綴 | X | Y | W | H | Pivot X | Pivot Y | 對齊)"),
                 elementHeight = EditorGUIUtility.singleLineHeight + 4,
                 drawElementCallback = DrawRectElement,
                 onAddCallback = _ => _settings.SpriteRects.Add(new SpriteRectDef
@@ -253,6 +255,10 @@ namespace SpriteBatch
 
         private void RefreshTexturePaths()
         {
+            string preservedPath = _previewIndex < _allTexturePaths.Count
+                ? _allTexturePaths[_previewIndex]
+                : null;
+
             var pathSet = new HashSet<string>();
             foreach (var folder in _settings.TargetFolders)
             {
@@ -273,9 +279,20 @@ namespace SpriteBatch
                     _ = pathSet.Add(AssetDatabase.GUIDToAssetPath(guid));
                 }
             }
+
             _allTexturePaths = new List<string>(pathSet);
-            _previewNames = _allTexturePaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToArray();
-            _previewIndex = 0;
+            _previewNames = _allTexturePaths
+                .Select(p =>
+                {
+                    string ext = Path.GetExtension(p);
+                    return p.StartsWith("Assets/")
+                        ? p["Assets/".Length..^ext.Length]
+                        : Path.GetFileNameWithoutExtension(p);
+                })
+                .ToArray();
+
+            int restored = preservedPath != null ? _allTexturePaths.IndexOf(preservedPath) : -1;
+            _previewIndex = restored >= 0 ? restored : 0;
             _previewTexture = null;
             Repaint();
         }
