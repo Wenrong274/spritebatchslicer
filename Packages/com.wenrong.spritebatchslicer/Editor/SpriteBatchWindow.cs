@@ -9,6 +9,10 @@ namespace SpriteBatch
 {
     public class SpriteBatchWindow : EditorWindow
     {
+        private const float PreviewMaxHeight = 240f;
+        private static readonly int[]    MaxTextureSizeValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
+        private static readonly string[] MaxTextureSizeNames  = { "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192" };
+
         private BatchSettings _settings = new();
         private ReorderableList _folderList;
         private ReorderableList _rectList;
@@ -65,7 +69,10 @@ namespace SpriteBatch
                     EditorGUI.LabelField(rect, "Sprite 切割 (後綴 | X | Y | W | H | Pivot X | Pivot Y | 對齊)"),
                 elementHeight = EditorGUIUtility.singleLineHeight + 4,
                 drawElementCallback = DrawRectElement,
-                onAddCallback = _ => _settings.SpriteRects.Add(new SpriteRectDef())
+                onAddCallback = _ => _settings.SpriteRects.Add(new SpriteRectDef
+                {
+                    NameSuffix = $"_{_settings.SpriteRects.Count}"
+                })
             };
         }
 
@@ -153,7 +160,8 @@ namespace SpriteBatch
         private void DrawTextureSettingsSection()
         {
             EditorGUILayout.LabelField("貼圖設定 (Texture Settings)", EditorStyles.boldLabel);
-            _settings.MaxTextureSize = EditorGUILayout.IntField("最大尺寸 (Max Size)", _settings.MaxTextureSize);
+            _settings.MaxTextureSize = EditorGUILayout.IntPopup(
+                "最大尺寸 (Max Size)", _settings.MaxTextureSize, MaxTextureSizeNames, MaxTextureSizeValues);
             _settings.FilterMode = (FilterMode)EditorGUILayout.EnumPopup("過濾模式 (Filter Mode)", _settings.FilterMode);
             _settings.AlphaIsTransparency = EditorGUILayout.Toggle("Alpha 透明度", _settings.AlphaIsTransparency);
             _settings.Compression = (TextureImporterCompression)EditorGUILayout.EnumPopup(
@@ -184,7 +192,7 @@ namespace SpriteBatch
             }
 
             float maxW = position.width - 24;
-            float scale = Mathf.Min(1f, maxW / _previewTexture.width);
+            float scale = Mathf.Min(1f, maxW / _previewTexture.width, PreviewMaxHeight / _previewTexture.height);
             float dispW = _previewTexture.width * scale;
             float dispH = _previewTexture.height * scale;
 
