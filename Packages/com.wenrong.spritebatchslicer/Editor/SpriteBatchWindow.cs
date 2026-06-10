@@ -41,8 +41,14 @@ namespace SpriteBatch
 
         private void OnEnable()
         {
+            LoadState();
             InitFolderList();
             InitRectList();
+        }
+
+        private void OnDisable()
+        {
+            SaveState();
         }
 
         private void InitFolderList()
@@ -251,6 +257,44 @@ namespace SpriteBatch
             {
                 ApplyAll();
             }
+        }
+
+        private void LoadState()
+        {
+            var s = SpriteBatchWindowState.instance;
+            _settings.MaxTextureSize = s.MaxTextureSize;
+            _settings.FilterMode = s.FilterMode;
+            _settings.AlphaIsTransparency = s.AlphaIsTransparency;
+            _settings.Compression = s.Compression;
+            _settings.SpriteRects = new List<SpriteRectDef>(s.SpriteRects);
+            _settings.TargetFolders.Clear();
+            foreach (var path in s.FolderPaths)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
+                if (asset != null)
+                {
+                    _settings.TargetFolders.Add(asset);
+                }
+            }
+        }
+
+        private void SaveState()
+        {
+            var s = SpriteBatchWindowState.instance;
+            s.MaxTextureSize = _settings.MaxTextureSize;
+            s.FilterMode = _settings.FilterMode;
+            s.AlphaIsTransparency = _settings.AlphaIsTransparency;
+            s.Compression = _settings.Compression;
+            s.SpriteRects = new List<SpriteRectDef>(_settings.SpriteRects);
+            s.FolderPaths.Clear();
+            foreach (var folder in _settings.TargetFolders)
+            {
+                if (folder != null)
+                {
+                    s.FolderPaths.Add(AssetDatabase.GetAssetPath(folder));
+                }
+            }
+            s.Save();
         }
 
         private void RefreshTexturePaths()
