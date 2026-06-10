@@ -29,6 +29,7 @@ namespace SpriteBatch
         private int _previewIndex = 0;
         private Texture2D _previewTexture;
         private Vector2 _scrollPos;
+        private GUIStyle _rectLabelStyle;
 
         [MenuItem("Tools/Sprite 批次設定")]
         public static void ShowWindow()
@@ -212,7 +213,8 @@ namespace SpriteBatch
             previewRect.width = dispW;
             GUI.DrawTexture(previewRect, _previewTexture, ScaleMode.StretchToFill);
 
-            var labelStyle = new GUIStyle(EditorStyles.miniLabel);
+            _rectLabelStyle ??= new GUIStyle(EditorStyles.miniLabel);
+            var labelStyle = _rectLabelStyle;
             for (int i = 0; i < _settings.SpriteRects.Count; i++)
             {
                 var def = _settings.SpriteRects[i];
@@ -229,8 +231,11 @@ namespace SpriteBatch
                 EditorGUI.DrawRect(new Rect(rx,          ry + rh - 1, rw,  1), c);
                 EditorGUI.DrawRect(new Rect(rx,          ry,          1,  rh), c);
                 EditorGUI.DrawRect(new Rect(rx + rw - 1, ry,          1,  rh), c);
-                labelStyle.normal.textColor = c;
-                GUI.Label(new Rect(rx + 2, ry + 1, rw - 4, 14), def.NameSuffix, labelStyle);
+                if (rw > 6 && rh > 14)
+                {
+                    labelStyle.normal.textColor = c;
+                    GUI.Label(new Rect(rx + 2, ry + 1, rw - 4, 14), def.NameSuffix, labelStyle);
+                }
             }
         }
 
