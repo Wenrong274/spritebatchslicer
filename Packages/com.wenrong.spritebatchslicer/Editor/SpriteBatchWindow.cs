@@ -10,6 +10,13 @@ namespace SpriteBatch
     public class SpriteBatchWindow : EditorWindow
     {
         private const float PreviewMaxHeight = 240f;
+        private static readonly Color[] RectOverlayColors =
+        {
+            new Color(0.298f, 0.686f, 0.314f), // Material Green 500
+            new Color(0.129f, 0.588f, 0.953f), // Material Blue 500
+            new Color(1.000f, 0.596f, 0.000f), // Material Orange 700
+            new Color(0.957f, 0.263f, 0.212f), // Material Red 500
+        };
         private static readonly int[]    MaxTextureSizeValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
         private static readonly string[] MaxTextureSizeNames  = { "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192" };
 
@@ -205,20 +212,25 @@ namespace SpriteBatch
             previewRect.width = dispW;
             GUI.DrawTexture(previewRect, _previewTexture, ScaleMode.StretchToFill);
 
-            foreach (var def in _settings.SpriteRects)
+            var labelStyle = new GUIStyle(EditorStyles.miniLabel);
+            for (int i = 0; i < _settings.SpriteRects.Count; i++)
             {
+                var def = _settings.SpriteRects[i];
+                Color c = RectOverlayColors[i % RectOverlayColors.Length];
+
                 float rx = previewRect.x + def.Rect.x * scale;
                 float ry = previewRect.y + (_previewTexture.height - def.Rect.y - def.Rect.height) * scale;
                 float rw = def.Rect.width * scale;
                 float rh = def.Rect.height * scale;
 
                 var overlay = new Rect(rx, ry, rw, rh);
-                EditorGUI.DrawRect(overlay, new Color(1f, 1f, 0f, 0.15f));
-                var border = new Color(1f, 1f, 0f, 0.9f);
-                EditorGUI.DrawRect(new Rect(rx, ry, rw, 1), border);
-                EditorGUI.DrawRect(new Rect(rx, ry + rh - 1, rw, 1), border);
-                EditorGUI.DrawRect(new Rect(rx, ry, 1, rh), border);
-                EditorGUI.DrawRect(new Rect(rx + rw - 1, ry, 1, rh), border);
+                EditorGUI.DrawRect(overlay, new Color(c.r, c.g, c.b, 0.15f));
+                EditorGUI.DrawRect(new Rect(rx,          ry,          rw,  1), c);
+                EditorGUI.DrawRect(new Rect(rx,          ry + rh - 1, rw,  1), c);
+                EditorGUI.DrawRect(new Rect(rx,          ry,          1,  rh), c);
+                EditorGUI.DrawRect(new Rect(rx + rw - 1, ry,          1,  rh), c);
+                labelStyle.normal.textColor = c;
+                GUI.Label(new Rect(rx + 2, ry + 1, rw - 4, 14), def.NameSuffix, labelStyle);
             }
         }
 
