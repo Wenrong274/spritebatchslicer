@@ -105,6 +105,7 @@ namespace SpriteBatch
 
             var allPaths = new List<string>(pathSet);
 
+            // Batch all SaveAndReimport calls; StopAssetEditing triggers a single unified import pass.
             AssetDatabase.StartAssetEditing();
             try
             {
