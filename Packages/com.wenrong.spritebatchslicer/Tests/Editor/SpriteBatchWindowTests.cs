@@ -55,6 +55,15 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(1, result.Count);
         }
 
+        [Test]
+        public void FilterNewFolders_空拖曳集合_回傳空清單()
+        {
+            var result = SpriteBatchEditorUtils.FilterNewFolders(
+                new List<DefaultAsset>(), System.Array.Empty<Object>());
+
+            Assert.AreEqual(0, result.Count);
+        }
+
         // --- AlignmentToPivot ---
 
         [Test]

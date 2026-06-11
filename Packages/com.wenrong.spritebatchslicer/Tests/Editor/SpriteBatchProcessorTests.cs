@@ -197,6 +197,26 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(0, result.Count);
         }
 
+        [Test]
+        public void CollectTexturePaths_多資料夾重複結果_去重且排序()
+        {
+            string folderA = $"{TestAssetFactory.TestRoot}/BFolder";
+            string folderB = $"{TestAssetFactory.TestRoot}/AFolder";
+            string pathB = TestAssetFactory.CreatePng($"{folderA}/b_texture.png", 8, 8, Color.white);
+            string pathA = TestAssetFactory.CreatePng($"{folderB}/a_texture.png", 8, 8, Color.white);
+
+            var result = SpriteBatchProcessor.CollectTexturePaths(new List<string>
+            {
+                TestAssetFactory.TestRoot,
+                folderA,
+                folderB
+            });
+
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(pathA, result[0]);
+            Assert.AreEqual(pathB, result[1]);
+        }
+
         // --- SpriteBatchImporterOptions ---
 
         [Test]
