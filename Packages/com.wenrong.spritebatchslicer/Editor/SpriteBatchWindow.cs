@@ -338,6 +338,7 @@ namespace SpriteBatch
             }
 
             _allTexturePaths = new List<string>(pathSet);
+            _allTexturePaths.Sort(System.StringComparer.OrdinalIgnoreCase);
             _previewNames = _allTexturePaths
                 .Select(p =>
                 {
@@ -349,10 +350,8 @@ namespace SpriteBatch
                 .ToArray();
 
             int restored = preservedPath != null ? _allTexturePaths.IndexOf(preservedPath) : -1;
-            int newIndex = restored >= 0 ? restored : 0;
-            if (newIndex != _previewIndex)
-                _previewTexture = null;
-            _previewIndex = newIndex;
+            _previewIndex = restored >= 0 ? restored : 0;
+            _previewTexture = null;
             Repaint();
         }
 
