@@ -43,16 +43,8 @@ namespace SpriteBatch
 
         private void OnEnable()
         {
-            LoadScalarSettings();
             InitFolderList();
             InitRectList();
-            EditorApplication.delayCall += DelayedLoadFolders;
-        }
-
-        private void OnDisable()
-        {
-            EditorApplication.delayCall -= DelayedLoadFolders;
-            SaveState();
         }
 
         private void InitFolderList()
@@ -284,58 +276,6 @@ namespace SpriteBatch
             {
                 ApplyAll();
             }
-        }
-
-        private void LoadScalarSettings()
-        {
-            var s = SpriteBatchWindowState.instance;
-            _settings.MaxTextureSize = System.Array.IndexOf(MaxTextureSizeValues, s.MaxTextureSize) >= 0
-                                            ? s.MaxTextureSize
-                                            : 2048;
-            _settings.FilterMode = s.FilterMode;
-            _settings.AlphaIsTransparency = s.AlphaIsTransparency;
-            _settings.Compression = s.Compression;
-            _settings.SpriteRects = new List<SpriteRectDef>(s.SpriteRects);
-        }
-
-        private void DelayedLoadFolders()
-        {
-            if (this == null)
-            {
-                return;
-            }
-
-            var s = SpriteBatchWindowState.instance;
-            _folderAssets.Clear();
-            foreach (string path in s.FolderPaths)
-            {
-                var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
-                if (asset != null)
-                {
-                    _folderAssets.Add(asset);
-                }
-            }
-            RefreshTexturePaths();
-            Repaint();
-        }
-
-        private void SaveState()
-        {
-            var s = SpriteBatchWindowState.instance;
-            s.MaxTextureSize = _settings.MaxTextureSize;
-            s.FilterMode = _settings.FilterMode;
-            s.AlphaIsTransparency = _settings.AlphaIsTransparency;
-            s.Compression = _settings.Compression;
-            s.SpriteRects = new List<SpriteRectDef>(_settings.SpriteRects);
-            s.FolderPaths.Clear();
-            foreach (var folder in _folderAssets)
-            {
-                if (folder != null)
-                {
-                    s.FolderPaths.Add(AssetDatabase.GetAssetPath(folder));
-                }
-            }
-            s.Save();
         }
 
         private void RefreshTexturePaths()
