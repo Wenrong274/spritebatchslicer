@@ -7,6 +7,18 @@ namespace SpriteBatch.Tests
 {
     public class SpriteBatchProcessorTests
     {
+        [SetUp]
+        public void SetUp()
+        {
+            TestAssetFactory.DeleteTestRoot();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            TestAssetFactory.DeleteTestRoot();
+        }
+
         // --- ValidatePreflight ---
 
         [Test]
