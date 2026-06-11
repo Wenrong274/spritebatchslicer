@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 namespace SpriteBatch
 {
@@ -17,7 +16,7 @@ namespace SpriteBatch
     [Serializable]
     public class BatchSettings
     {
-        public List<DefaultAsset> TargetFolders = new();
+        public List<string> FolderPaths = new();
         public int MaxTextureSize = 2048;
         public FilterMode FilterMode = FilterMode.Bilinear;
         public bool AlphaIsTransparency = true;

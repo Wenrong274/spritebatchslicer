@@ -72,6 +72,25 @@ namespace SpriteBatch
             public bool WasCancelled;
         }
 
+        public static List<string> CollectTexturePaths(IEnumerable<string> folderPaths)
+        {
+            var pathSet = new HashSet<string>();
+            foreach (var folderPath in folderPaths)
+            {
+                if (string.IsNullOrEmpty(folderPath))
+                {
+                    continue;
+                }
+                foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath }))
+                {
+                    _ = pathSet.Add(AssetDatabase.GUIDToAssetPath(guid));
+                }
+            }
+            var result = new List<string>(pathSet);
+            result.Sort(System.StringComparer.OrdinalIgnoreCase);
+            return result;
+        }
+
         public static ApplyResult ApplyToFolders(
             BatchSettings settings,
             Action<float, string> onProgress = null,
@@ -83,28 +102,7 @@ namespace SpriteBatch
                 FailedPaths = new List<string>()
             };
 
-            var pathSet = new HashSet<string>();
-            foreach (var folder in settings.TargetFolders)
-            {
-                if (folder == null)
-                {
-                    continue;
-                }
-
-                string folderPath = AssetDatabase.GetAssetPath(folder);
-                if (string.IsNullOrEmpty(folderPath))
-                {
-                    continue;
-                }
-
-                string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath });
-                foreach (string guid in guids)
-                {
-                    _ = pathSet.Add(AssetDatabase.GUIDToAssetPath(guid));
-                }
-            }
-
-            var allPaths = new List<string>(pathSet);
+            var allPaths = CollectTexturePaths(settings.FolderPaths);
 
             // Batch all SaveAndReimport calls; StopAssetEditing triggers a single unified import pass.
             AssetDatabase.SaveAssets();

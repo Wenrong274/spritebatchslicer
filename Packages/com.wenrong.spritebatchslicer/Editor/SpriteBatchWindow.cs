@@ -29,6 +29,7 @@ namespace SpriteBatch
         private int _previewIndex = 0;
         private Texture2D _previewTexture;
         private Vector2 _scrollPos;
+        private List<DefaultAsset> _folderAssets = new();
         private GUIStyle[] _previewLabelStyles;
         private bool _previewLabelStylesIsPro;
 
@@ -57,7 +58,7 @@ namespace SpriteBatch
         private void InitFolderList()
         {
             _folderList = new ReorderableList(
-                _settings.TargetFolders, typeof(DefaultAsset), true, true, true, true)
+                _folderAssets, typeof(DefaultAsset), true, true, true, true)
             {
                 drawHeaderCallback = rect =>
                     EditorGUI.LabelField(rect, "目標資料夾"),
@@ -65,15 +66,15 @@ namespace SpriteBatch
                     {
                         var r = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
                         EditorGUI.BeginChangeCheck();
-                        _settings.TargetFolders[index] = (DefaultAsset)EditorGUI.ObjectField(
-                            r, _settings.TargetFolders[index], typeof(DefaultAsset), false);
+                        _folderAssets[index] = (DefaultAsset)EditorGUI.ObjectField(
+                            r, _folderAssets[index], typeof(DefaultAsset), false);
                         if (EditorGUI.EndChangeCheck())
                         {
                             RefreshTexturePaths();
                         }
                     },
-                onAddCallback = _ => { _settings.TargetFolders.Add(null); RefreshTexturePaths(); },
-                onRemoveCallback = list => { _settings.TargetFolders.RemoveAt(list.index); RefreshTexturePaths(); }
+                onAddCallback = _ => { _folderAssets.Add(null); RefreshTexturePaths(); },
+                onRemoveCallback = list => { _folderAssets.RemoveAt(list.index); RefreshTexturePaths(); }
             };
         }
 
@@ -147,7 +148,7 @@ namespace SpriteBatch
             _folderList.DoList(listRect);
             HandleFolderDrop(listRect);
 
-            if (_settings.TargetFolders.Count == 0)
+            if (_folderAssets.Count == 0)
             {
                 var hintStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
                 {
@@ -181,10 +182,10 @@ namespace SpriteBatch
             else if (evt.type == EventType.DragPerform)
             {
                 DragAndDrop.AcceptDrag();
-                var newFolders = SpriteBatchEditorUtils.FilterNewFolders(_settings.TargetFolders, DragAndDrop.objectReferences);
+                var newFolders = SpriteBatchEditorUtils.FilterNewFolders(_folderAssets, DragAndDrop.objectReferences);
                 if (newFolders.Count > 0)
                 {
-                    _settings.TargetFolders.AddRange(newFolders);
+                    _folderAssets.AddRange(newFolders);
                     RefreshTexturePaths();
                 }
                 evt.Use();
@@ -276,7 +277,7 @@ namespace SpriteBatch
         private void DrawApplySection()
         {
             int total = _allTexturePaths.Count;
-            int folderCount = _settings.TargetFolders.Count(f => f != null);
+            int folderCount = _settings.FolderPaths.Count;
             EditorGUILayout.LabelField($"將處理 {total} 張圖片（{folderCount} 個資料夾）");
 
             if (GUILayout.Button("套用全部 (Apply All)", GUILayout.Height(32)))
@@ -305,13 +306,13 @@ namespace SpriteBatch
             }
 
             var s = SpriteBatchWindowState.instance;
-            _settings.TargetFolders.Clear();
+            _folderAssets.Clear();
             foreach (string path in s.FolderPaths)
             {
                 var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
                 if (asset != null)
                 {
-                    _settings.TargetFolders.Add(asset);
+                    _folderAssets.Add(asset);
                 }
             }
             RefreshTexturePaths();
@@ -327,7 +328,7 @@ namespace SpriteBatch
             s.Compression = _settings.Compression;
             s.SpriteRects = new List<SpriteRectDef>(_settings.SpriteRects);
             s.FolderPaths.Clear();
-            foreach (var folder in _settings.TargetFolders)
+            foreach (var folder in _folderAssets)
             {
                 if (folder != null)
                 {
@@ -343,29 +344,21 @@ namespace SpriteBatch
                 ? _allTexturePaths[_previewIndex]
                 : null;
 
-            var pathSet = new HashSet<string>();
-            foreach (var folder in _settings.TargetFolders)
+            _settings.FolderPaths.Clear();
+            foreach (var folder in _folderAssets)
             {
                 if (folder == null)
                 {
                     continue;
                 }
-
-                string folderPath = AssetDatabase.GetAssetPath(folder);
-                if (string.IsNullOrEmpty(folderPath))
+                string p = AssetDatabase.GetAssetPath(folder);
+                if (!string.IsNullOrEmpty(p))
                 {
-                    continue;
-                }
-
-                string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folderPath });
-                foreach (string guid in guids)
-                {
-                    _ = pathSet.Add(AssetDatabase.GUIDToAssetPath(guid));
+                    _settings.FolderPaths.Add(p);
                 }
             }
 
-            _allTexturePaths = new List<string>(pathSet);
-            _allTexturePaths.Sort(System.StringComparer.OrdinalIgnoreCase);
+            _allTexturePaths = SpriteBatchProcessor.CollectTexturePaths(_settings.FolderPaths);
             _previewNames = _allTexturePaths
                 .Select(p =>
                 {
@@ -397,13 +390,7 @@ namespace SpriteBatch
 
         private void ApplyAll()
         {
-            var folderPaths = _settings.TargetFolders
-                .Where(f => f != null)
-                .Select(f => AssetDatabase.GetAssetPath(f))
-                .Where(p => !string.IsNullOrEmpty(p))
-                .ToList();
-
-            var errors = SpriteBatchProcessor.ValidatePreflight(folderPaths, _settings.SpriteRects);
+            var errors = SpriteBatchProcessor.ValidatePreflight(_settings.FolderPaths, _settings.SpriteRects);
             if (errors.Count > 0)
             {
                 _ = EditorUtility.DisplayDialog("驗證失敗",

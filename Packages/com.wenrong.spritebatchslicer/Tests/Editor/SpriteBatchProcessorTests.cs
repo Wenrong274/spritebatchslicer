@@ -163,6 +163,23 @@ namespace SpriteBatch.Tests
 
             Assert.AreNotEqual(result[0].spriteID, result[1].spriteID);
         }
+
+        // --- CollectTexturePaths ---
+
+        [Test]
+        public void CollectTexturePaths_空清單_回傳空清單()
+        {
+            var result = SpriteBatchProcessor.CollectTexturePaths(new List<string>());
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void CollectTexturePaths_包含不存在路徑_略過並回傳空清單()
+        {
+            var result = SpriteBatchProcessor.CollectTexturePaths(
+                new List<string> { "Assets/NonExistent/Folder" });
+            Assert.AreEqual(0, result.Count);
+        }
     }
 
 }
