@@ -12,7 +12,7 @@ namespace SpriteBatch
         public int MaxTextureSize = 2048;
         public FilterMode FilterMode = FilterMode.Bilinear;
         public bool AlphaIsTransparency = true;
-        public TextureImporterCompression Compression = TextureImporterCompression.Compressed;
+        public BatchTextureCompression Compression = BatchTextureCompression.Compressed;
 
         public void Capture(BatchSettings settings, IEnumerable<string> folderPaths)
         {
