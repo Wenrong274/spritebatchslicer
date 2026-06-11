@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.U2D.Sprites;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace SpriteBatch.Tests
 {
@@ -288,6 +290,79 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(1, secondResult.SuccessCount);
             Assert.IsTrue(firstIds.ContainsKey("guid_preserved_main"));
             Assert.AreEqual(firstIds["guid_preserved_main"], secondIds["guid_preserved_main"]);
+        }
+
+        [Test]
+        public void ApplyToFolders_Rect超出圖片_跳過且不計成功()
+        {
+            string path = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/bounds_skip.png", 32, 32, Color.white);
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_too_large",
+                        Rect = new Rect(0, 0, 64, 64)
+                    }
+                }
+            };
+
+            LogAssert.Expect(
+                LogType.Error,
+                "[Sprite 批次設定] bounds_skip.png: 切割區域 '_too_large' 超出圖片寬度（32px）。");
+
+            var result = SpriteBatchProcessor.ApplyToFolders(settings);
+
+            Assert.AreEqual(0, result.SuccessCount);
+            Assert.AreEqual(1, result.SkippedPaths.Count);
+            Assert.AreEqual(path, result.SkippedPaths[0]);
+            Assert.AreEqual(0, result.FailedPaths.Count);
+        }
+
+        [Test]
+        public void ApplyToFolders_取消後_停止後續處理()
+        {
+            _ = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/cancel_00.png", 32, 32, Color.white);
+            _ = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/cancel_01.png", 32, 32, Color.white);
+            int progressCalls = 0;
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_main",
+                        Rect = new Rect(0, 0, 16, 16)
+                    }
+                }
+            };
+
+            var result = SpriteBatchProcessor.ApplyToFolders(
+                settings,
+                (_, _) => progressCalls++,
+                () => progressCalls > 0);
+
+            Assert.IsTrue(result.WasCancelled);
+            Assert.AreEqual(1, result.SuccessCount);
+            Assert.AreEqual(1, progressCalls);
+        }
+
+        [Test]
+        public void SpriteBatchProcessor_不直接顯示ProgressBar()
+        {
+            string sourcePath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "Packages/com.wenrong.spritebatchslicer/Editor/SpriteBatchProcessor.cs");
+
+            string source = File.ReadAllText(sourcePath);
+
+            StringAssert.DoesNotContain("EditorUtility.DisplayProgressBar", source);
         }
 
         private static Dictionary<string, GUID> ReadSpriteIds(string path)

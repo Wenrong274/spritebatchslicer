@@ -183,7 +183,6 @@ namespace SpriteBatch
             }
             finally
             {
-                EditorUtility.DisplayProgressBar("Sprite 批次設定", "正在完成匯入...", 1f);
                 AssetDatabase.StopAssetEditing();
             }
 
