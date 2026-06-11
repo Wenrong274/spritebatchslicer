@@ -55,6 +55,31 @@ namespace SpriteBatch.Tests
             Assert.AreEqual(1, result.Count);
         }
 
+        [Test]
+        public void ToFolderPaths_資料夾資產清單_回傳AssetPath()
+        {
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
+            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+
+            var result = SpriteBatchEditorUtils.ToFolderPaths(new List<DefaultAsset> { folder, null });
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Assets/Sprites/Icon00_6_0win", result[0]);
+        }
+
+        [Test]
+        public void LoadFolderAssets_路徑清單_略過不存在路徑()
+        {
+            var result = SpriteBatchEditorUtils.LoadFolderAssets(new[]
+            {
+                "Assets/Sprites/Icon00_6_0win",
+                "Assets/DoesNotExist"
+            });
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Assets/Sprites/Icon00_6_0win", AssetDatabase.GetAssetPath(result[0]));
+        }
+
         // --- AlignmentToPivot ---
 
         [Test]

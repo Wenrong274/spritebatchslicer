@@ -2,6 +2,10 @@
 
 ## 概要
 
+> **狀態更新 (2026-06-11)：** 項目 1-8 與 10 已於目前的編輯器視窗中實作。保留此規格是為了提供歷史脈絡。剩餘可執行的 UX 範圍是項目 9 的 Domain Reload 持久化，以及修正舊有的目標資料夾欄位，將其參照更新為目前的 `_folderAssets` + `_settings.FolderPaths` 架構。
+>
+> **目前架構注意事項：** `SpriteBatchWindow` 擁有用於 UI 綁定的 `_folderAssets: List<DefaultAsset>`。`BatchSettings.FolderPaths` 儲存供 `SpriteBatchProcessor` 消耗的資產路徑。`AlignmentToPivot` 位於 `SpriteBatchEditorUtils` 而不是 `SpriteBatchWindow`。
+
 本規格涵蓋 `SpriteBatchWindow` 的 10 項 UI/UX 改善，目標是消除操作陷阱、強化視覺回饋、在 Domain Reload（編譯）後保留設定。所有改善集中在單一 PR 完成，依優先序實作：🔴 高 → 🟡 中 → 🟢 低。
 
 **涉及檔案：**
@@ -10,6 +14,9 @@
 |------|------|
 | 修改 | `Packages/com.wenrong.spritebatchslicer/Editor/SpriteBatchWindow.cs` |
 | 新增 | `Packages/com.wenrong.spritebatchslicer/Editor/SpriteBatchWindowState.cs` |
+| 修改 | `Packages/com.wenrong.spritebatchslicer/Editor/SpriteBatchEditorUtils.cs` |
+| 新增 | `Packages/com.wenrong.spritebatchslicer/Tests/Editor/SpriteBatchWindowStateTests.cs` |
+| 修改 | `Packages/com.wenrong.spritebatchslicer/Tests/Editor/SpriteBatchWindowTests.cs` |
 | 不動 | `SpriteBatchProcessor.cs`、`SpriteBatchData.cs` |
 
 ---
@@ -226,7 +233,7 @@ private void RefreshTexturePaths()
         : null;
 
     var pathSet = new HashSet<string>();
-    foreach (var folder in _settings.TargetFolders)
+    foreach (var folder in _folderAssets)
     {
         if (folder == null) continue;
         string folderPath = AssetDatabase.GetAssetPath(folder);
@@ -310,11 +317,11 @@ private void LoadState()
     _settings.AlphaIsTransparency = s.AlphaIsTransparency;
     _settings.Compression       = s.Compression;
     _settings.SpriteRects       = new List<SpriteRectDef>(s.SpriteRects);
-    _settings.TargetFolders.Clear();
+    _folderAssets.Clear();
     foreach (var path in s.FolderPaths)
     {
         var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
-        if (asset != null) _settings.TargetFolders.Add(asset);
+        if (asset != null) _folderAssets.Add(asset);
     }
 }
 
@@ -327,7 +334,7 @@ private void SaveState()
     s.Compression         = _settings.Compression;
     s.SpriteRects         = new List<SpriteRectDef>(_settings.SpriteRects);
     s.FolderPaths.Clear();
-    foreach (var folder in _settings.TargetFolders)
+    foreach (var folder in _folderAssets)
     {
         if (folder != null) s.FolderPaths.Add(AssetDatabase.GetAssetPath(folder));
     }
@@ -345,7 +352,7 @@ private void SaveState()
 
 ```csharp
 // In DrawFolderSection, after _folderList.DoList(listRect):
-if (_settings.TargetFolders.Count == 0)
+if (_folderAssets.Count == 0)
 {
     // listRect.y + 21 skips the header row
     var hintRect = new Rect(listRect.x + 4, listRect.y + 21, listRect.width - 8, 36);

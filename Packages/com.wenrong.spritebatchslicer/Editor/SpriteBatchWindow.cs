@@ -43,8 +43,33 @@ namespace SpriteBatch
 
         private void OnEnable()
         {
+            LoadState();
             InitFolderList();
             InitRectList();
+            RefreshTexturePaths();
+        }
+
+        private void OnDisable()
+        {
+            SaveState();
+        }
+
+        private void LoadState()
+        {
+            var folderPaths = new List<string>();
+            SpriteBatchWindowState.instance.ApplyTo(_settings, folderPaths);
+            _folderAssets = SpriteBatchEditorUtils.LoadFolderAssets(folderPaths);
+        }
+
+        private void SaveState()
+        {
+            SpriteBatchWindowState.instance.Capture(_settings, SpriteBatchEditorUtils.ToFolderPaths(_folderAssets));
+            SpriteBatchWindowState.instance.SaveState();
+        }
+
+        private void SyncFolderPathsFromAssets()
+        {
+            _settings.FolderPaths = SpriteBatchEditorUtils.ToFolderPaths(_folderAssets);
         }
 
         private void InitFolderList()
@@ -284,19 +309,7 @@ namespace SpriteBatch
                 ? _allTexturePaths[_previewIndex]
                 : null;
 
-            _settings.FolderPaths.Clear();
-            foreach (var folder in _folderAssets)
-            {
-                if (folder == null)
-                {
-                    continue;
-                }
-                string p = AssetDatabase.GetAssetPath(folder);
-                if (!string.IsNullOrEmpty(p))
-                {
-                    _settings.FolderPaths.Add(p);
-                }
-            }
+            SyncFolderPathsFromAssets();
 
             _allTexturePaths = SpriteBatchProcessor.CollectTexturePaths(_settings.FolderPaths);
             _previewNames = _allTexturePaths

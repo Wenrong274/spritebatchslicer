@@ -28,7 +28,38 @@ namespace SpriteBatch
             }
             return result;
         }
+        public static List<string> ToFolderPaths(IEnumerable<DefaultAsset> folders)
+        {
+            var result = new List<string>();
+            foreach (var folder in folders)
+            {
+                if (folder == null)
+                {
+                    continue;
+                }
 
+                string path = AssetDatabase.GetAssetPath(folder);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    result.Add(path);
+                }
+            }
+            return result;
+        }
+
+        public static List<DefaultAsset> LoadFolderAssets(IEnumerable<string> folderPaths)
+        {
+            var result = new List<DefaultAsset>();
+            foreach (string folderPath in folderPaths)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(folderPath);
+                if (asset != null)
+                {
+                    result.Add(asset);
+                }
+            }
+            return result;
+        }
         public static Vector2 AlignmentToPivot(SpriteAlignment alignment, Vector2 current) =>
             alignment switch
             {
