@@ -29,8 +29,6 @@ namespace SpriteBatch
         private int _previewIndex = 0;
         private Texture2D _previewTexture;
         private Vector2 _scrollPos;
-        private GUIStyle _rectLabelStyle;
-        private GUIStyle _folderHintStyle;
 
         [MenuItem("Tools/Sprite 批次設定")]
         public static void ShowWindow()
@@ -147,14 +145,14 @@ namespace SpriteBatch
 
             if (_settings.TargetFolders.Count == 0)
             {
-                _folderHintStyle ??= new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+                var hintStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
                 {
                     wordWrap = false,
                     normal = { textColor = new Color(0.6f, 0.6f, 0.6f) }
                 };
                 var hintRect = new Rect(listRect.x + 4, listRect.y + 21, listRect.width - 8, 36);
                 EditorGUI.DrawRect(hintRect, new Color(1f, 1f, 1f, 0.03f));
-                GUI.Label(hintRect, "將資料夾從 Project 窗口拖曳至此", _folderHintStyle);
+                GUI.Label(hintRect, "將資料夾從 Project 窗口拖曳至此", hintStyle);
             }
         }
 
@@ -234,8 +232,7 @@ namespace SpriteBatch
             previewRect.width = dispW;
             GUI.DrawTexture(previewRect, _previewTexture, ScaleMode.StretchToFill);
 
-            _rectLabelStyle ??= new GUIStyle(EditorStyles.miniLabel);
-            var labelStyle = _rectLabelStyle;
+            var labelStyle = new GUIStyle(EditorStyles.miniLabel);
             for (int i = 0; i < _settings.SpriteRects.Count; i++)
             {
                 var def = _settings.SpriteRects[i];
