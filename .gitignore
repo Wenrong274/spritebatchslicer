@@ -38,6 +38,7 @@
 .vs/
 
 .vscode/
+.worktrees/
 
 # Gradle cache directory
 .gradle/
