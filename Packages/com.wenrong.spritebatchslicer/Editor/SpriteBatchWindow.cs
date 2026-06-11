@@ -86,7 +86,7 @@ namespace SpriteBatch
                 drawElementCallback = DrawRectElement,
                 onAddCallback = _ => _settings.SpriteRects.Add(new SpriteRectDef
                 {
-                    NameSuffix = $"_{_settings.SpriteRects.Count}"
+                    NameSuffix = GetNextSuffix()
                 })
             };
         }
@@ -373,6 +373,17 @@ namespace SpriteBatch
                 result.Add(asset);
             }
             return result;
+        }
+
+        private string GetNextSuffix()
+        {
+            var existing = new HashSet<string>(_settings.SpriteRects.Select(r => r.NameSuffix));
+            for (int i = 0; ; i++)
+            {
+                string candidate = $"_{i}";
+                if (!existing.Contains(candidate))
+                    return candidate;
+            }
         }
 
         public static Vector2 AlignmentToPivot(SpriteAlignment alignment, Vector2 current) =>
