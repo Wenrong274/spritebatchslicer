@@ -9,7 +9,10 @@ namespace SpriteBatch
 {
     public static class SpriteBatchProcessor
     {
-        public struct ValidationError { public string Message; }
+        public struct ValidationError
+        {
+            public string Message;
+        }
 
         public static List<ValidationError> ValidatePreflight(List<string> folderPaths, List<SpriteRectDef> spriteRects)
         {

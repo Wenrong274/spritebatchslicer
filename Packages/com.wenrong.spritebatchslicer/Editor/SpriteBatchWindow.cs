@@ -184,7 +184,10 @@ namespace SpriteBatch
             }
         }
 
-        private void DrawRectSection() { _rectList.DoLayoutList(); }
+        private void DrawRectSection()
+        {
+            _rectList.DoLayoutList();
+        }
 
         private void DrawTextureSettingsSection()
         {
