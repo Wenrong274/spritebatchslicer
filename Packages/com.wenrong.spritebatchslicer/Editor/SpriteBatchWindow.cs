@@ -40,13 +40,15 @@ namespace SpriteBatch
 
         private void OnEnable()
         {
-            LoadState();
+            LoadScalarSettings();
             InitFolderList();
             InitRectList();
+            EditorApplication.delayCall += DelayedLoadFolders;
         }
 
         private void OnDisable()
         {
+            EditorApplication.delayCall -= DelayedLoadFolders;
             SaveState();
         }
 
@@ -269,23 +271,31 @@ namespace SpriteBatch
             }
         }
 
-        private void LoadState()
+        private void LoadScalarSettings()
         {
             var s = SpriteBatchWindowState.instance;
-            _settings.MaxTextureSize = s.MaxTextureSize;
-            _settings.FilterMode = s.FilterMode;
+            _settings.MaxTextureSize      = System.Array.IndexOf(MaxTextureSizeValues, s.MaxTextureSize) >= 0
+                                             ? s.MaxTextureSize
+                                             : 2048;
+            _settings.FilterMode          = s.FilterMode;
             _settings.AlphaIsTransparency = s.AlphaIsTransparency;
-            _settings.Compression = s.Compression;
-            _settings.SpriteRects = new List<SpriteRectDef>(s.SpriteRects);
+            _settings.Compression         = s.Compression;
+            _settings.SpriteRects         = new List<SpriteRectDef>(s.SpriteRects);
+        }
+
+        private void DelayedLoadFolders()
+        {
+            if (this == null) return;
+            var s = SpriteBatchWindowState.instance;
             _settings.TargetFolders.Clear();
             foreach (var path in s.FolderPaths)
             {
                 var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
                 if (asset != null)
-                {
                     _settings.TargetFolders.Add(asset);
-                }
             }
+            RefreshTexturePaths();
+            Repaint();
         }
 
         private void SaveState()
