@@ -14,7 +14,7 @@ namespace SpriteBatch.Tests
             Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
             var existing = new List<DefaultAsset> { folder };
 
-            var result = SpriteBatchWindow.FilterNewFolders(existing, new Object[] { folder });
+            var result = SpriteBatchEditorUtils.FilterNewFolders(existing, new Object[] { folder });
 
             Assert.AreEqual(0, result.Count);
         }
@@ -25,7 +25,7 @@ namespace SpriteBatch.Tests
             var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
             Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
 
-            var result = SpriteBatchWindow.FilterNewFolders(new List<DefaultAsset>(), new Object[] { folder });
+            var result = SpriteBatchEditorUtils.FilterNewFolders(new List<DefaultAsset>(), new Object[] { folder });
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(folder, result[0]);
@@ -38,7 +38,7 @@ namespace SpriteBatch.Tests
                 "Assets/Sprites/Icon00_6_0win/Icon00_6_0win_00.png");
             Assume.That(texture, Is.Not.Null, "測試素材 Icon00_6_0win_00.png 不存在");
 
-            var result = SpriteBatchWindow.FilterNewFolders(new List<DefaultAsset>(), new Object[] { texture });
+            var result = SpriteBatchEditorUtils.FilterNewFolders(new List<DefaultAsset>(), new Object[] { texture });
 
             Assert.AreEqual(0, result.Count);
         }
@@ -49,7 +49,7 @@ namespace SpriteBatch.Tests
             var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
             Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
 
-            var result = SpriteBatchWindow.FilterNewFolders(
+            var result = SpriteBatchEditorUtils.FilterNewFolders(
                 new List<DefaultAsset>(), new Object[] { folder, folder });
 
             Assert.AreEqual(1, result.Count);
@@ -60,21 +60,21 @@ namespace SpriteBatch.Tests
         [Test]
         public void AlignmentToPivot_TopLeft_回傳_0_1()
         {
-            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.TopLeft, Vector2.zero);
+            var result = SpriteBatchEditorUtils.AlignmentToPivot(SpriteAlignment.TopLeft, Vector2.zero);
             Assert.AreEqual(new Vector2(0f, 1f), result);
         }
 
         [Test]
         public void AlignmentToPivot_BottomRight_回傳_1_0()
         {
-            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.BottomRight, Vector2.zero);
+            var result = SpriteBatchEditorUtils.AlignmentToPivot(SpriteAlignment.BottomRight, Vector2.zero);
             Assert.AreEqual(new Vector2(1f, 0f), result);
         }
 
         [Test]
         public void AlignmentToPivot_Center_回傳_05_05()
         {
-            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.Center, Vector2.zero);
+            var result = SpriteBatchEditorUtils.AlignmentToPivot(SpriteAlignment.Center, Vector2.zero);
             Assert.AreEqual(new Vector2(0.5f, 0.5f), result);
         }
 
@@ -82,7 +82,7 @@ namespace SpriteBatch.Tests
         public void AlignmentToPivot_Custom_不改變Pivot()
         {
             var original = new Vector2(0.3f, 0.7f);
-            var result = SpriteBatchWindow.AlignmentToPivot(SpriteAlignment.Custom, original);
+            var result = SpriteBatchEditorUtils.AlignmentToPivot(SpriteAlignment.Custom, original);
             Assert.AreEqual(original, result);
         }
     }
