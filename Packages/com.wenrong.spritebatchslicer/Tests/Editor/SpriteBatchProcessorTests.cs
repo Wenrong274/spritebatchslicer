@@ -192,6 +192,24 @@ namespace SpriteBatch.Tests
                 new List<string> { "Assets/NonExistent/Folder" });
             Assert.AreEqual(0, result.Count);
         }
+
+        // --- SpriteBatchImporterOptions ---
+
+        [Test]
+        public void ToUnityCompression_CompressedHQ_回傳UnityCompressedHQ()
+        {
+            var result = SpriteBatchImporterOptions.ToUnityCompression(BatchTextureCompression.CompressedHQ);
+
+            Assert.AreEqual(TextureImporterCompression.CompressedHQ, result);
+        }
+
+        [Test]
+        public void ToUnityCompression_Uncompressed_回傳UnityUncompressed()
+        {
+            var result = SpriteBatchImporterOptions.ToUnityCompression(BatchTextureCompression.Uncompressed);
+
+            Assert.AreEqual(TextureImporterCompression.Uncompressed, result);
+        }
     }
 
 }

@@ -5,6 +5,14 @@ using UnityEngine;
 
 namespace SpriteBatch
 {
+    public enum BatchTextureCompression
+    {
+        Uncompressed,
+        Compressed,
+        CompressedHQ,
+        CompressedLQ,
+    }
+
     [Serializable]
     public class SpriteRectDef
     {
@@ -21,7 +29,7 @@ namespace SpriteBatch
         public int MaxTextureSize = 2048;
         public FilterMode FilterMode = FilterMode.Bilinear;
         public bool AlphaIsTransparency = true;
-        public TextureImporterCompression Compression = TextureImporterCompression.Compressed;
+        public BatchTextureCompression Compression = BatchTextureCompression.Compressed;
         public List<SpriteRectDef> SpriteRects = new();
     }
 }

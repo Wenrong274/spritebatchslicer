@@ -152,7 +152,7 @@ namespace SpriteBatch
                         importer.filterMode = settings.FilterMode;
                         importer.alphaIsTransparency = settings.AlphaIsTransparency;
                         importer.maxTextureSize = settings.MaxTextureSize;
-                        importer.textureCompression = settings.Compression;
+                        importer.textureCompression = SpriteBatchImporterOptions.ToUnityCompression(settings.Compression);
 
                         var factory = new SpriteDataProviderFactories();
                         factory.Init();
