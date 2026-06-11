@@ -1,6 +1,8 @@
-using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
+using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 namespace SpriteBatch.Tests
@@ -209,6 +211,95 @@ namespace SpriteBatch.Tests
             var result = SpriteBatchImporterOptions.ToUnityCompression(BatchTextureCompression.Uncompressed);
 
             Assert.AreEqual(TextureImporterCompression.Uncompressed, result);
+        }
+
+        // --- ApplyToFolders ---
+
+        [Test]
+        public void ApplyToFolders_有效設定_套用TextureImporter與SpriteRects()
+        {
+            string path = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/apply_success.png", 64, 64, Color.white);
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                MaxTextureSize = 512,
+                FilterMode = FilterMode.Point,
+                AlphaIsTransparency = false,
+                Compression = BatchTextureCompression.Uncompressed,
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_idle",
+                        Rect = new Rect(0, 0, 32, 32),
+                        Pivot = new Vector2(0.5f, 0.5f),
+                        Alignment = SpriteAlignment.Center
+                    }
+                }
+            };
+
+            var result = SpriteBatchProcessor.ApplyToFolders(settings);
+
+            Assert.AreEqual(1, result.SuccessCount);
+            Assert.AreEqual(0, result.SkippedPaths.Count);
+            Assert.AreEqual(0, result.FailedPaths.Count);
+            Assert.IsFalse(result.WasCancelled);
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            Assert.AreEqual(TextureImporterType.Sprite, importer.textureType);
+            Assert.AreEqual(SpriteImportMode.Multiple, importer.spriteImportMode);
+            Assert.AreEqual(FilterMode.Point, importer.filterMode);
+            Assert.IsFalse(importer.alphaIsTransparency);
+            Assert.AreEqual(512, importer.maxTextureSize);
+            Assert.AreEqual(TextureImporterCompression.Uncompressed, importer.textureCompression);
+
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+            Assert.IsTrue(sprites.Any(sprite => sprite.name == "apply_success_idle"));
+        }
+
+        [Test]
+        public void ApplyToFolders_既有同名Sprite_保留SpriteGUID()
+        {
+            string path = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/guid_preserved.png", 64, 64, Color.white);
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_main",
+                        Rect = new Rect(0, 0, 32, 32),
+                        Pivot = new Vector2(0.5f, 0.5f),
+                        Alignment = SpriteAlignment.Center
+                    }
+                }
+            };
+
+            var firstResult = SpriteBatchProcessor.ApplyToFolders(settings);
+            var firstIds = ReadSpriteIds(path);
+
+            var secondResult = SpriteBatchProcessor.ApplyToFolders(settings);
+            var secondIds = ReadSpriteIds(path);
+
+            Assert.AreEqual(1, firstResult.SuccessCount);
+            Assert.AreEqual(1, secondResult.SuccessCount);
+            Assert.IsTrue(firstIds.ContainsKey("guid_preserved_main"));
+            Assert.AreEqual(firstIds["guid_preserved_main"], secondIds["guid_preserved_main"]);
+        }
+
+        private static Dictionary<string, GUID> ReadSpriteIds(string path)
+        {
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            var factory = new SpriteDataProviderFactories();
+            factory.Init();
+            var dataProvider = factory.GetSpriteEditorDataProviderFromObject(importer);
+            dataProvider.InitSpriteEditorDataProvider();
+
+            return dataProvider.GetSpriteRects()
+                .ToDictionary(rect => rect.name, rect => rect.spriteID);
         }
     }
 

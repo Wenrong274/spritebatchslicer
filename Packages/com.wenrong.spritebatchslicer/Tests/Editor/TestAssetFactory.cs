@@ -6,6 +6,7 @@ namespace SpriteBatch.Tests
 {
     internal static class TestAssetFactory
     {
+        private const string TempRoot = "Assets/Temp";
         public const string TestRoot = "Assets/Temp/SpriteBatchSlicerTests";
 
         public static string CreatePng(string assetPath, int width, int height, Color color)
@@ -38,6 +39,12 @@ namespace SpriteBatch.Tests
             if (AssetDatabase.IsValidFolder(TestRoot))
             {
                 AssetDatabase.DeleteAsset(TestRoot);
+            }
+
+            if (AssetDatabase.IsValidFolder(TempRoot) &&
+                AssetDatabase.FindAssets(string.Empty, new[] { TempRoot }).Length == 0)
+            {
+                AssetDatabase.DeleteAsset(TempRoot);
             }
 
             AssetDatabase.Refresh();
