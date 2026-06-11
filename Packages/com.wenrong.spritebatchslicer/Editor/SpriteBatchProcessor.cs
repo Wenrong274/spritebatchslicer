@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -73,8 +74,8 @@ namespace SpriteBatch
 
         public static ApplyResult ApplyToFolders(
             BatchSettings settings,
-            System.Action<float, string> onProgress = null,
-            System.Func<bool> isCancelled = null)
+            Action<float, string> onProgress = null,
+            Func<bool> isCancelled = null)
         {
             var result = new ApplyResult
             {
@@ -163,7 +164,9 @@ namespace SpriteBatch
                         var existingRects = dataProvider.GetSpriteRects();
                         var existingIds = new Dictionary<string, GUID>();
                         foreach (var r in existingRects)
+                        {
                             existingIds[r.name] = r.spriteID;
+                        }
 
                         dataProvider.SetSpriteRects(BuildSpriteRects(
                             Path.GetFileNameWithoutExtension(path), settings.SpriteRects, existingIds));
@@ -173,7 +176,7 @@ namespace SpriteBatch
                         importer.SaveAndReimport();
                         result.SuccessCount++;
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         Debug.LogWarning($"[Sprite 批次設定] 處理失敗 {path}: {ex.Message}");
                         result.FailedPaths.Add(path);
@@ -199,7 +202,7 @@ namespace SpriteBatch
             {
                 var def = spriteRects[i];
                 string name = assetFileName + def.NameSuffix;
-                GUID id = (existingIds != null && existingIds.TryGetValue(name, out GUID found))
+                GUID id = (existingIds is not null && existingIds.TryGetValue(name, out GUID found))
                     ? found
                     : GUID.Generate();
                 rects[i] = new SpriteRect

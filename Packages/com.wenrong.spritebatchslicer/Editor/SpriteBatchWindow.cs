@@ -17,8 +17,8 @@ namespace SpriteBatch
             new Color(1.000f, 0.596f, 0.000f), // Material Orange 700
             new Color(0.957f, 0.263f, 0.212f), // Material Red 500
         };
-        private static readonly int[]    MaxTextureSizeValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
-        private static readonly string[] MaxTextureSizeNames  = { "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192" };
+        private static readonly int[] MaxTextureSizeValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
+        private static readonly string[] MaxTextureSizeNames = { "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192" };
 
         private BatchSettings _settings = new();
         private ReorderableList _folderList;
@@ -29,6 +29,8 @@ namespace SpriteBatch
         private int _previewIndex = 0;
         private Texture2D _previewTexture;
         private Vector2 _scrollPos;
+        private GUIStyle[] _previewLabelStyles;
+        private bool _previewLabelStylesIsPro;
 
         [MenuItem("Tools/Sprite 批次設定")]
         public static void ShowWindow()
@@ -234,11 +236,24 @@ namespace SpriteBatch
             previewRect.width = dispW;
             GUI.DrawTexture(previewRect, _previewTexture, ScaleMode.StretchToFill);
 
-            var labelStyle = new GUIStyle(EditorStyles.miniLabel);
+            if (_previewLabelStyles is null || _previewLabelStylesIsPro != EditorGUIUtility.isProSkin)
+            {
+                _previewLabelStylesIsPro = EditorGUIUtility.isProSkin;
+                _previewLabelStyles = new GUIStyle[RectOverlayColors.Length];
+                for (int j = 0; j < RectOverlayColors.Length; j++)
+                {
+                    _previewLabelStyles[j] = new GUIStyle(EditorStyles.miniLabel)
+                    {
+                        normal = { textColor = RectOverlayColors[j] }
+                    };
+                }
+            }
+
             for (int i = 0; i < _settings.SpriteRects.Count; i++)
             {
                 var def = _settings.SpriteRects[i];
                 Color c = RectOverlayColors[i % RectOverlayColors.Length];
+                var labelStyle = _previewLabelStyles[i % _previewLabelStyles.Length];
 
                 float rx = previewRect.x + def.Rect.x * scale;
                 float ry = previewRect.y + (_previewTexture.height - def.Rect.y - def.Rect.height) * scale;
@@ -247,13 +262,12 @@ namespace SpriteBatch
 
                 var overlay = new Rect(rx, ry, rw, rh);
                 EditorGUI.DrawRect(overlay, new Color(c.r, c.g, c.b, 0.15f));
-                EditorGUI.DrawRect(new Rect(rx,          ry,          rw,  1), c);
-                EditorGUI.DrawRect(new Rect(rx,          ry + rh - 1, rw,  1), c);
-                EditorGUI.DrawRect(new Rect(rx,          ry,          1,  rh), c);
-                EditorGUI.DrawRect(new Rect(rx + rw - 1, ry,          1,  rh), c);
+                EditorGUI.DrawRect(new Rect(rx, ry, rw, 1), c);
+                EditorGUI.DrawRect(new Rect(rx, ry + rh - 1, rw, 1), c);
+                EditorGUI.DrawRect(new Rect(rx, ry, 1, rh), c);
+                EditorGUI.DrawRect(new Rect(rx + rw - 1, ry, 1, rh), c);
                 if (rw > 6 && rh > 14)
                 {
-                    labelStyle.normal.textColor = c;
                     GUI.Label(new Rect(rx + 2, ry + 1, rw - 4, 14), def.NameSuffix, labelStyle);
                 }
             }
@@ -274,25 +288,31 @@ namespace SpriteBatch
         private void LoadScalarSettings()
         {
             var s = SpriteBatchWindowState.instance;
-            _settings.MaxTextureSize      = System.Array.IndexOf(MaxTextureSizeValues, s.MaxTextureSize) >= 0
-                                             ? s.MaxTextureSize
-                                             : 2048;
-            _settings.FilterMode          = s.FilterMode;
+            _settings.MaxTextureSize = System.Array.IndexOf(MaxTextureSizeValues, s.MaxTextureSize) >= 0
+                                            ? s.MaxTextureSize
+                                            : 2048;
+            _settings.FilterMode = s.FilterMode;
             _settings.AlphaIsTransparency = s.AlphaIsTransparency;
-            _settings.Compression         = s.Compression;
-            _settings.SpriteRects         = new List<SpriteRectDef>(s.SpriteRects);
+            _settings.Compression = s.Compression;
+            _settings.SpriteRects = new List<SpriteRectDef>(s.SpriteRects);
         }
 
         private void DelayedLoadFolders()
         {
-            if (this == null) return;
+            if (this == null)
+            {
+                return;
+            }
+
             var s = SpriteBatchWindowState.instance;
             _settings.TargetFolders.Clear();
-            foreach (var path in s.FolderPaths)
+            foreach (string path in s.FolderPaths)
             {
                 var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
                 if (asset != null)
+                {
                     _settings.TargetFolders.Add(asset);
+                }
             }
             RefreshTexturePaths();
             Repaint();
@@ -356,7 +376,7 @@ namespace SpriteBatch
                 })
                 .ToArray();
 
-            int restored = preservedPath != null ? _allTexturePaths.IndexOf(preservedPath) : -1;
+            int restored = preservedPath is not null ? _allTexturePaths.IndexOf(preservedPath) : -1;
             _previewIndex = restored >= 0 ? restored : 0;
             _previewTexture = null;
             Repaint();
@@ -392,23 +412,25 @@ namespace SpriteBatch
             {
                 string candidate = $"_{i}";
                 if (!existing.Contains(candidate))
+                {
                     return candidate;
+                }
             }
         }
 
         public static Vector2 AlignmentToPivot(SpriteAlignment alignment, Vector2 current) =>
             alignment switch
             {
-                SpriteAlignment.TopLeft      => new Vector2(0f,   1f),
-                SpriteAlignment.TopCenter    => new Vector2(0.5f, 1f),
-                SpriteAlignment.TopRight     => new Vector2(1f,   1f),
-                SpriteAlignment.LeftCenter   => new Vector2(0f,   0.5f),
-                SpriteAlignment.Center       => new Vector2(0.5f, 0.5f),
-                SpriteAlignment.RightCenter  => new Vector2(1f,   0.5f),
-                SpriteAlignment.BottomLeft   => new Vector2(0f,   0f),
+                SpriteAlignment.TopLeft => new Vector2(0f, 1f),
+                SpriteAlignment.TopCenter => new Vector2(0.5f, 1f),
+                SpriteAlignment.TopRight => new Vector2(1f, 1f),
+                SpriteAlignment.LeftCenter => new Vector2(0f, 0.5f),
+                SpriteAlignment.Center => new Vector2(0.5f, 0.5f),
+                SpriteAlignment.RightCenter => new Vector2(1f, 0.5f),
+                SpriteAlignment.BottomLeft => new Vector2(0f, 0f),
                 SpriteAlignment.BottomCenter => new Vector2(0.5f, 0f),
-                SpriteAlignment.BottomRight  => new Vector2(1f,   0f),
-                _                            => current,
+                SpriteAlignment.BottomRight => new Vector2(1f, 0f),
+                _ => current,
             };
 
         private void ApplyAll()
