@@ -9,7 +9,10 @@ namespace SpriteBatch
 {
     public static class SpriteBatchProcessor
     {
-        public struct ValidationError { public string Message; }
+        public struct ValidationError
+        {
+            public string Message;
+        }
 
         public static List<ValidationError> ValidatePreflight(List<string> folderPaths, List<SpriteRectDef> spriteRects)
         {
@@ -152,7 +155,7 @@ namespace SpriteBatch
                         importer.filterMode = settings.FilterMode;
                         importer.alphaIsTransparency = settings.AlphaIsTransparency;
                         importer.maxTextureSize = settings.MaxTextureSize;
-                        importer.textureCompression = settings.Compression;
+                        importer.textureCompression = SpriteBatchImporterOptions.ToUnityCompression(settings.Compression);
 
                         var factory = new SpriteDataProviderFactories();
                         factory.Init();
@@ -183,7 +186,6 @@ namespace SpriteBatch
             }
             finally
             {
-                EditorUtility.DisplayProgressBar("Sprite 批次設定", "正在完成匯入...", 1f);
                 AssetDatabase.StopAssetEditing();
             }
 

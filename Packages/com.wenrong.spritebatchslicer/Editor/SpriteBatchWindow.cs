@@ -209,7 +209,10 @@ namespace SpriteBatch
             }
         }
 
-        private void DrawRectSection() { _rectList.DoLayoutList(); }
+        private void DrawRectSection()
+        {
+            _rectList.DoLayoutList();
+        }
 
         private void DrawTextureSettingsSection()
         {
@@ -218,8 +221,8 @@ namespace SpriteBatch
                 "最大尺寸 (Max Size)", _settings.MaxTextureSize, MaxTextureSizeNames, MaxTextureSizeValues);
             _settings.FilterMode = (FilterMode)EditorGUILayout.EnumPopup("過濾模式 (Filter Mode)", _settings.FilterMode);
             _settings.AlphaIsTransparency = EditorGUILayout.Toggle("Alpha 透明度", _settings.AlphaIsTransparency);
-            _settings.Compression = (TextureImporterCompression)EditorGUILayout.EnumPopup(
-                                                "壓縮 (Compression)", _settings.Compression);
+            _settings.Compression = (BatchTextureCompression)EditorGUILayout.EnumPopup(
+                "壓縮 (Compression)", _settings.Compression);
         }
 
         private void DrawPreviewSection()

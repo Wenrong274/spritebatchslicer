@@ -1,12 +1,28 @@
-using NUnit.Framework;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace SpriteBatch.Tests
 {
     public class SpriteBatchProcessorTests
     {
+        [SetUp]
+        public void SetUp()
+        {
+            TestAssetFactory.DeleteTestRoot();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            TestAssetFactory.DeleteTestRoot();
+        }
+
         // --- ValidatePreflight ---
 
         [Test]
@@ -179,6 +195,206 @@ namespace SpriteBatch.Tests
             var result = SpriteBatchProcessor.CollectTexturePaths(
                 new List<string> { "Assets/NonExistent/Folder" });
             Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void CollectTexturePaths_多資料夾重複結果_去重且排序()
+        {
+            string folderA = $"{TestAssetFactory.TestRoot}/BFolder";
+            string folderB = $"{TestAssetFactory.TestRoot}/AFolder";
+            string pathB = TestAssetFactory.CreatePng($"{folderA}/b_texture.png", 8, 8, Color.white);
+            string pathA = TestAssetFactory.CreatePng($"{folderB}/a_texture.png", 8, 8, Color.white);
+
+            var result = SpriteBatchProcessor.CollectTexturePaths(new List<string>
+            {
+                TestAssetFactory.TestRoot,
+                folderA,
+                folderB
+            });
+
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(pathA, result[0]);
+            Assert.AreEqual(pathB, result[1]);
+        }
+
+        // --- SpriteBatchImporterOptions ---
+
+        [Test]
+        public void ToUnityCompression_CompressedHQ_回傳UnityCompressedHQ()
+        {
+            var result = SpriteBatchImporterOptions.ToUnityCompression(BatchTextureCompression.CompressedHQ);
+
+            Assert.AreEqual(TextureImporterCompression.CompressedHQ, result);
+        }
+
+        [Test]
+        public void ToUnityCompression_Uncompressed_回傳UnityUncompressed()
+        {
+            var result = SpriteBatchImporterOptions.ToUnityCompression(BatchTextureCompression.Uncompressed);
+
+            Assert.AreEqual(TextureImporterCompression.Uncompressed, result);
+        }
+
+        // --- ApplyToFolders ---
+
+        [Test]
+        public void ApplyToFolders_有效設定_套用TextureImporter與SpriteRects()
+        {
+            string path = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/apply_success.png", 64, 64, Color.white);
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                MaxTextureSize = 512,
+                FilterMode = FilterMode.Point,
+                AlphaIsTransparency = false,
+                Compression = BatchTextureCompression.Uncompressed,
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_idle",
+                        Rect = new Rect(0, 0, 32, 32),
+                        Pivot = new Vector2(0.5f, 0.5f),
+                        Alignment = SpriteAlignment.Center
+                    }
+                }
+            };
+
+            var result = SpriteBatchProcessor.ApplyToFolders(settings);
+
+            Assert.AreEqual(1, result.SuccessCount);
+            Assert.AreEqual(0, result.SkippedPaths.Count);
+            Assert.AreEqual(0, result.FailedPaths.Count);
+            Assert.IsFalse(result.WasCancelled);
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            Assert.AreEqual(TextureImporterType.Sprite, importer.textureType);
+            Assert.AreEqual(SpriteImportMode.Multiple, importer.spriteImportMode);
+            Assert.AreEqual(FilterMode.Point, importer.filterMode);
+            Assert.IsFalse(importer.alphaIsTransparency);
+            Assert.AreEqual(512, importer.maxTextureSize);
+            Assert.AreEqual(TextureImporterCompression.Uncompressed, importer.textureCompression);
+
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+            Assert.IsTrue(sprites.Any(sprite => sprite.name == "apply_success_idle"));
+        }
+
+        [Test]
+        public void ApplyToFolders_既有同名Sprite_保留SpriteGUID()
+        {
+            string path = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/guid_preserved.png", 64, 64, Color.white);
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_main",
+                        Rect = new Rect(0, 0, 32, 32),
+                        Pivot = new Vector2(0.5f, 0.5f),
+                        Alignment = SpriteAlignment.Center
+                    }
+                }
+            };
+
+            var firstResult = SpriteBatchProcessor.ApplyToFolders(settings);
+            var firstIds = ReadSpriteIds(path);
+
+            var secondResult = SpriteBatchProcessor.ApplyToFolders(settings);
+            var secondIds = ReadSpriteIds(path);
+
+            Assert.AreEqual(1, firstResult.SuccessCount);
+            Assert.AreEqual(1, secondResult.SuccessCount);
+            Assert.IsTrue(firstIds.ContainsKey("guid_preserved_main"));
+            Assert.AreEqual(firstIds["guid_preserved_main"], secondIds["guid_preserved_main"]);
+        }
+
+        [Test]
+        public void ApplyToFolders_Rect超出圖片_跳過且不計成功()
+        {
+            string path = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/bounds_skip.png", 32, 32, Color.white);
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_too_large",
+                        Rect = new Rect(0, 0, 64, 64)
+                    }
+                }
+            };
+
+            LogAssert.Expect(
+                LogType.Error,
+                "[Sprite 批次設定] bounds_skip.png: 切割區域 '_too_large' 超出圖片寬度（32px）。");
+
+            var result = SpriteBatchProcessor.ApplyToFolders(settings);
+
+            Assert.AreEqual(0, result.SuccessCount);
+            Assert.AreEqual(1, result.SkippedPaths.Count);
+            Assert.AreEqual(path, result.SkippedPaths[0]);
+            Assert.AreEqual(0, result.FailedPaths.Count);
+        }
+
+        [Test]
+        public void ApplyToFolders_取消後_停止後續處理()
+        {
+            _ = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/cancel_00.png", 32, 32, Color.white);
+            _ = TestAssetFactory.CreatePng(
+                $"{TestAssetFactory.TestRoot}/cancel_01.png", 32, 32, Color.white);
+            int progressCalls = 0;
+            var settings = new BatchSettings
+            {
+                FolderPaths = new List<string> { TestAssetFactory.TestRoot },
+                SpriteRects = new List<SpriteRectDef>
+                {
+                    new()
+                    {
+                        NameSuffix = "_main",
+                        Rect = new Rect(0, 0, 16, 16)
+                    }
+                }
+            };
+
+            var result = SpriteBatchProcessor.ApplyToFolders(
+                settings,
+                (_, _) => progressCalls++,
+                () => progressCalls > 0);
+
+            Assert.IsTrue(result.WasCancelled);
+            Assert.AreEqual(1, result.SuccessCount);
+            Assert.AreEqual(1, progressCalls);
+        }
+
+        [Test]
+        public void SpriteBatchProcessor_不直接顯示ProgressBar()
+        {
+            string sourcePath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "Packages/com.wenrong.spritebatchslicer/Editor/SpriteBatchProcessor.cs");
+
+            string source = File.ReadAllText(sourcePath);
+
+            StringAssert.DoesNotContain("EditorUtility.DisplayProgressBar", source);
+        }
+
+        private static Dictionary<string, GUID> ReadSpriteIds(string path)
+        {
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            var factory = new SpriteDataProviderFactories();
+            factory.Init();
+            var dataProvider = factory.GetSpriteEditorDataProviderFromObject(importer);
+            dataProvider.InitSpriteEditorDataProvider();
+
+            return dataProvider.GetSpriteRects()
+                .ToDictionary(rect => rect.name, rect => rect.spriteID);
         }
     }
 
