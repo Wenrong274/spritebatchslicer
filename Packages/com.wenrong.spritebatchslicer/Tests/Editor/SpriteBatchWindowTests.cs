@@ -7,11 +7,27 @@ namespace SpriteBatch.Tests
 {
     public class SpriteBatchWindowTests
     {
+        private const string TestFolderPath = TestAssetFactory.TestRoot + "/WindowTests";
+        private const string TestTexturePath = TestFolderPath + "/WindowTexture.png";
+
+        [SetUp]
+        public void SetUp()
+        {
+            TestAssetFactory.DeleteTestRoot();
+            TestAssetFactory.CreatePng(TestTexturePath, 16, 16, Color.white);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            TestAssetFactory.DeleteTestRoot();
+        }
+
         [Test]
         public void FilterNewFolders_重複資料夾_不加入()
         {
-            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
-            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TestFolderPath);
+            Assume.That(folder, Is.Not.Null, "測試資料夾不存在");
             var existing = new List<DefaultAsset> { folder };
 
             var result = SpriteBatchEditorUtils.FilterNewFolders(existing, new Object[] { folder });
@@ -22,8 +38,8 @@ namespace SpriteBatch.Tests
         [Test]
         public void FilterNewFolders_新資料夾_加入()
         {
-            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
-            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TestFolderPath);
+            Assume.That(folder, Is.Not.Null, "測試資料夾不存在");
 
             var result = SpriteBatchEditorUtils.FilterNewFolders(new List<DefaultAsset>(), new Object[] { folder });
 
@@ -34,9 +50,8 @@ namespace SpriteBatch.Tests
         [Test]
         public void FilterNewFolders_非資料夾物件_略過()
         {
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(
-                "Assets/Sprites/Icon00_6_0win/Icon00_6_0win_00.png");
-            Assume.That(texture, Is.Not.Null, "測試素材 Icon00_6_0win_00.png 不存在");
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(TestTexturePath);
+            Assume.That(texture, Is.Not.Null, "測試貼圖不存在");
 
             var result = SpriteBatchEditorUtils.FilterNewFolders(new List<DefaultAsset>(), new Object[] { texture });
 
@@ -46,8 +61,8 @@ namespace SpriteBatch.Tests
         [Test]
         public void FilterNewFolders_批次內重複資料夾_只加入一次()
         {
-            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
-            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TestFolderPath);
+            Assume.That(folder, Is.Not.Null, "測試資料夾不存在");
 
             var result = SpriteBatchEditorUtils.FilterNewFolders(
                 new List<DefaultAsset>(), new Object[] { folder, folder });
@@ -58,13 +73,13 @@ namespace SpriteBatch.Tests
         [Test]
         public void ToFolderPaths_資料夾資產清單_回傳AssetPath()
         {
-            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>("Assets/Sprites/Icon00_6_0win");
-            Assume.That(folder, Is.Not.Null, "測試素材 Icon00_6_0win 不存在");
+            var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TestFolderPath);
+            Assume.That(folder, Is.Not.Null, "測試資料夾不存在");
 
             var result = SpriteBatchEditorUtils.ToFolderPaths(new List<DefaultAsset> { folder, null });
 
             Assert.AreEqual(1, result.Count);
-            Assert.AreEqual("Assets/Sprites/Icon00_6_0win", result[0]);
+            Assert.AreEqual(TestFolderPath, result[0]);
         }
 
         [Test]
@@ -72,12 +87,12 @@ namespace SpriteBatch.Tests
         {
             var result = SpriteBatchEditorUtils.LoadFolderAssets(new[]
             {
-                "Assets/Sprites/Icon00_6_0win",
+                TestFolderPath,
                 "Assets/DoesNotExist"
             });
 
             Assert.AreEqual(1, result.Count);
-            Assert.AreEqual("Assets/Sprites/Icon00_6_0win", AssetDatabase.GetAssetPath(result[0]));
+            Assert.AreEqual(TestFolderPath, AssetDatabase.GetAssetPath(result[0]));
         }
 
         [Test]
