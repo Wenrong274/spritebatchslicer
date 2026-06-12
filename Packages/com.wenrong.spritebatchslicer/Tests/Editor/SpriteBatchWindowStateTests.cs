@@ -18,7 +18,7 @@ namespace SpriteBatch.Tests
                     MaxTextureSize = 512,
                     FilterMode = FilterMode.Point,
                     AlphaIsTransparency = false,
-                    Compression = TextureImporterCompression.Uncompressed,
+                    Compression = BatchTextureCompression.Uncompressed,
                     SpriteRects = new List<SpriteRectDef>
                     {
                         new()
@@ -40,7 +40,7 @@ namespace SpriteBatch.Tests
                 Assert.AreEqual(512, state.MaxTextureSize);
                 Assert.AreEqual(FilterMode.Point, state.FilterMode);
                 Assert.IsFalse(state.AlphaIsTransparency);
-                Assert.AreEqual(TextureImporterCompression.Uncompressed, state.Compression);
+                Assert.AreEqual(BatchTextureCompression.Uncompressed, state.Compression);
                 Assert.AreEqual(2, state.FolderPaths.Count);
                 Assert.AreEqual("Assets/Sprites/Icon00_6_0win", state.FolderPaths[0]);
                 Assert.AreEqual("Assets/Sprites/Icon01_6_0win", state.FolderPaths[1]);
@@ -74,7 +74,7 @@ namespace SpriteBatch.Tests
                 state.MaxTextureSize = 1024;
                 state.FilterMode = FilterMode.Trilinear;
                 state.AlphaIsTransparency = true;
-                state.Compression = TextureImporterCompression.CompressedHQ;
+                state.Compression = BatchTextureCompression.CompressedHQ;
                 var settings = new BatchSettings();
                 var folderPaths = new List<string>();
 
@@ -83,7 +83,7 @@ namespace SpriteBatch.Tests
                 Assert.AreEqual(1024, settings.MaxTextureSize);
                 Assert.AreEqual(FilterMode.Trilinear, settings.FilterMode);
                 Assert.IsTrue(settings.AlphaIsTransparency);
-                Assert.AreEqual(TextureImporterCompression.CompressedHQ, settings.Compression);
+                Assert.AreEqual(BatchTextureCompression.CompressedHQ, settings.Compression);
                 Assert.AreEqual(1, folderPaths.Count);
                 Assert.AreEqual("Assets/Sprites/Icon00_6_0win", folderPaths[0]);
                 Assert.AreEqual(1, settings.FolderPaths.Count);
