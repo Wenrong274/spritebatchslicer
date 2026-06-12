@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     name: Unity Edit Mode Tests
@@ -13,19 +16,37 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Cache Library
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Library
           key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Library-
 
+      - name: Validate Unity license secrets
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ] && [ -z "$UNITY_SERIAL" ]; then
+            echo "::error title=Missing Unity license::Set UNITY_LICENSE for a personal/manual activation license file, or set UNITY_SERIAL with UNITY_EMAIL and UNITY_PASSWORD for a serial license."
+            exit 1
+          fi
+
+          if [ -n "$UNITY_SERIAL" ] && { [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; }; then
+            echo "::error title=Missing Unity credentials::UNITY_SERIAL also requires UNITY_EMAIL and UNITY_PASSWORD secrets."
+            exit 1
+          fi
+
       - name: Run Edit Mode Tests
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
@@ -34,8 +55,8 @@ jobs:
           artifactsPath: artifacts
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
+        uses: actions/upload-artifact@v6
+        if: ${{ always() && hashFiles('artifacts/**') != '' }}
         with:
           name: test-results
           path: artifacts/

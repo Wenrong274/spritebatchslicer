@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -60,6 +61,13 @@ namespace SpriteBatch
             }
             return result;
         }
+
+        public static int NormalizeMaxTextureSize(
+            int value, IReadOnlyList<int> allowedValues, int defaultValue)
+        {
+            return allowedValues.Contains(value) ? value : defaultValue;
+        }
+
         public static Vector2 AlignmentToPivot(SpriteAlignment alignment, Vector2 current) =>
             alignment switch
             {
