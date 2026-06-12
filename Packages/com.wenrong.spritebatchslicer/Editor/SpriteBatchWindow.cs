@@ -32,6 +32,7 @@ namespace SpriteBatch
         private List<DefaultAsset> _folderAssets = new();
         private GUIStyle[] _previewLabelStyles;
         private bool _previewLabelStylesIsPro;
+        private bool _folderAssetsLoaded;
 
         [MenuItem("Tools/Sprite 批次設定")]
         public static void ShowWindow()
@@ -43,27 +44,45 @@ namespace SpriteBatch
 
         private void OnEnable()
         {
-            LoadState();
+            LoadScalarSettings();
             InitFolderList();
             InitRectList();
-            RefreshTexturePaths();
+            EditorApplication.delayCall += DelayedLoadFolders;
         }
 
         private void OnDisable()
         {
+            EditorApplication.delayCall -= DelayedLoadFolders;
             SaveState();
         }
 
-        private void LoadState()
+        private void LoadScalarSettings()
         {
             var folderPaths = new List<string>();
             SpriteBatchWindowState.instance.ApplyTo(_settings, folderPaths);
-            _folderAssets = SpriteBatchEditorUtils.LoadFolderAssets(folderPaths);
+            _settings.MaxTextureSize = SpriteBatchEditorUtils.NormalizeMaxTextureSize(
+                _settings.MaxTextureSize, MaxTextureSizeValues, 2048);
+        }
+
+        private void DelayedLoadFolders()
+        {
+            if (this == null)
+            {
+                return;
+            }
+
+            _folderAssets = SpriteBatchEditorUtils.LoadFolderAssets(_settings.FolderPaths);
+            _folderAssetsLoaded = true;
+            RefreshTexturePaths();
+            Repaint();
         }
 
         private void SaveState()
         {
-            SpriteBatchWindowState.instance.Capture(_settings, SpriteBatchEditorUtils.ToFolderPaths(_folderAssets));
+            var folderPaths = _folderAssetsLoaded
+                ? SpriteBatchEditorUtils.ToFolderPaths(_folderAssets)
+                : SpriteBatchWindowState.instance.FolderPaths;
+            SpriteBatchWindowState.instance.Capture(_settings, folderPaths);
             SpriteBatchWindowState.instance.SaveState();
         }
 

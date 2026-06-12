@@ -81,6 +81,24 @@ namespace SpriteBatch.Tests
         }
 
         [Test]
+        public void NormalizeMaxTextureSize_合法值_保留原值()
+        {
+            int result = SpriteBatchEditorUtils.NormalizeMaxTextureSize(
+                512, new[] { 32, 64, 128, 256, 512 }, 2048);
+
+            Assert.AreEqual(512, result);
+        }
+
+        [Test]
+        public void NormalizeMaxTextureSize_非法值_回傳預設值()
+        {
+            int result = SpriteBatchEditorUtils.NormalizeMaxTextureSize(
+                3000, new[] { 32, 64, 128, 256, 512 }, 2048);
+
+            Assert.AreEqual(2048, result);
+        }
+
+        [Test]
         public void FilterNewFolders_空拖曳集合_回傳空清單()
         {
             var result = SpriteBatchEditorUtils.FilterNewFolders(
