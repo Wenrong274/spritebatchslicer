@@ -1,4 +1,4 @@
-name: Acquire activation file
+name: Unity Personal license setup help
 on:
   workflow_dispatch: {}
 
@@ -7,17 +7,26 @@ env:
 
 jobs:
   activation:
-    name: Request manual activation file 🔑
+    name: Show Unity Personal license setup steps
     runs-on: ubuntu-latest
     steps:
-      - name: Request manual activation file
-        id: getManualLicenseFile
-        uses: game-ci/unity-request-activation-file@v2
-        with:
-          unityVersion: 2022.3.62f3
+      - name: Print setup instructions
+        run: |
+          cat <<'EOF'
+          GameCI no longer supports generating Unity Personal activation files from GitHub Actions.
 
-      - name: Expose as artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ steps.getManualLicenseFile.outputs.filePath }}
-          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
+          For Unity Personal:
+          1. Open Unity Hub locally.
+          2. Sign in with the Unity account used for CI.
+          3. Go to Preferences > Licenses.
+          4. Click Add and choose Get a free personal license.
+          5. Copy the generated .ulf file contents into the GitHub repository secret UNITY_LICENSE.
+
+          Default .ulf file locations:
+          - Windows: C:\ProgramData\Unity\Unity_lic.ulf
+          - macOS: /Library/Application Support/Unity/Unity_lic.ulf
+          - Linux: ~/.local/share/unity3d/Unity/Unity_lic.ulf
+
+          GitHub secret path:
+          Settings > Secrets and variables > Actions > New repository secret
+          EOF
